@@ -2,6 +2,13 @@ name: Build Sonoff SNZB-02 firmware
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-sonoff.yml'
+      - 'src/**'
+      - 'makefile'
+      - 'project.mk'
 
 jobs:
   build:
