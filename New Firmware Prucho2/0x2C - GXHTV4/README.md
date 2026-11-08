@@ -36,4 +36,4 @@ The latest BIN and OTA image are archived here. BIN is for SWS programming. Keep
 
 ## PCB photos
 
-![Actual GXHTV4 PCB](images/pcb.jpg)
+![Actual GXHTV4 PCB](images/pcb.webp)
