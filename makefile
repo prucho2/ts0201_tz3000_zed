@@ -61,7 +61,7 @@ MAKE_INCLUDES := ./make
 TOOLS_PATH := ./tools
 ifeq ($(PROJECT_NAME),ts0201_tz3000_0x2b_zed)
 VERSION_RELEASE := V7.0
-VERSION_BUILD := 03
+VERSION_BUILD := 02
 else
 VERSION_RELEASE := V$(shell awk -F " " '/APP_RELEASE/ {gsub("0x",""); printf "%.1f", $$3/10.0; exit}' $(SRC_PATH)/include/version_cfg.h)
 VERSION_BUILD := $(shell awk -F " " '/APP_BUILD/ {gsub("0x",""); printf "%02d", $3; exit}' ./src/include/version_cfg.h)
