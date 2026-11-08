@@ -20,6 +20,12 @@ uint8_t scan_i2c_addr(uint8_t address) {
 
 #elif (I2C_DRV_USED == I2C_DRV_SOFT)
 
+/* Soft I2C is driven through the GPIO lines defined by the board profile. */
+void app_i2c_init(void) {
+    gpio_set_output_en(I2C_SCL, 0);
+    gpio_set_output_en(I2C_SDA, 0);
+}
+
 #if I2C_CLOCK > 200000
 #define I2C_TCLK_US 10 // *0.625 us (in 1/16 us)  I2C ~ 222222 Hz
 #else
