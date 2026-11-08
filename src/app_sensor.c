@@ -320,7 +320,9 @@ static int8_t sht40_i2c_read(uint16_t reg_addr, uint32_t reg_len, uint8_t *reg_d
 
 static int8_t sht40_i2c_write(uint16_t reg_addr, const uint8_t *reg_data, uint32_t len, sht40_dev_t *dev) {
 #if (I2C_DRV_USED == I2C_DRV_HARD)
-    drv_i2c_write_series(dev->addr << 1, reg_addr, 2, (uint8_t*)reg_data, len);
+    /* SHT4x commands are ONE byte (0x94 reset / 0xFD measure).
+     * Older Slacky code sent a two-byte register address here. */
+    drv_i2c_write_series(dev->addr << 1, reg_addr, 1, (uint8_t*)reg_data, len);
     return (reg_i2c_status & FLD_I2C_NAK);
 #elif (I2C_DRV_USED == I2C_DRV_SOFT)
     uint8_t buff = reg_addr;
