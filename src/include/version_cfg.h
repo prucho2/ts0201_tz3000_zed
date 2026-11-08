@@ -36,6 +36,7 @@
 #define BOARD_Z_WXD                         0x28
 #define BOARD_SONOFF_SNZB02_CHT8305          0x2A
 #define BOARD_ZTH01_JQ_V20                    0x2B
+#define BOARD_GXHTV4_PC2PC3                   0x2C
 
 #ifndef BOARD
 //#define BOARD                               BOARD_HXDZ_ZBWSD_V02
@@ -52,6 +53,9 @@
 #elif (BOARD == BOARD_ZTH01_JQ_V20)
 #define APP_RELEASE                         0x70        // custom ZTH01: v7.0
 #define APP_BUILD                           0x02        // custom ZTH01: v7.0.02
+#elif (BOARD == BOARD_GXHTV4_PC2PC3)
+#define APP_RELEASE                         0x70        // custom third board v7.0
+#define APP_BUILD                           0x02        // first board build v7.0.02
 #else
 #define APP_RELEASE                         0x10        // upstream v1.0
 #define APP_BUILD                           0x10        // upstream v1.0.10
@@ -65,7 +69,7 @@
 #define BUILD_DATE "20250611"
 #endif
 
-#if (BOARD == BOARD_SONOFF_SNZB02_CHT8305) || (BOARD == BOARD_ZTH01_JQ_V20)
+#if (BOARD == BOARD_SONOFF_SNZB02_CHT8305) || (BOARD == BOARD_ZTH01_JQ_V20) || (BOARD == BOARD_GXHTV4_PC2PC3)
 #include "sonoff_build_date.h"
 #define ZCL_BASIC_DATE_CODE    SONOFF_BUILD_DATE
 #else
