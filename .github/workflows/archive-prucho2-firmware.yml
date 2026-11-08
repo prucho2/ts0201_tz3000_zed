@@ -74,6 +74,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- "New Firmware Prucho2"
+          # The upstream .gitignore excludes versioned BIN files by name.
+          # Explicitly force-add only the three checked archive binaries.
+          find "New Firmware Prucho2" -type f -name '*.bin' -print0 | xargs -0 -r git add -f --
           if ! git diff --cached --quiet; then
             git commit -m "docs: archive verified Prucho2 firmware BIN and OTA"
             git push
