@@ -1,0 +1,80 @@
+name: Archive current Prucho2 firmware into Code
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'New Firmware Prucho2/README.md'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: archive-prucho2-firmware
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Retrieve verified successful firmware artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/prucho2-artifacts/2a /tmp/prucho2-artifacts/2b /tmp/prucho2-artifacts/2c
+          gh run download 42521937802 --repo "${GITHUB_REPOSITORY}" --name sonoff-snzb02-cht8305-v7.0.02 --dir /tmp/prucho2-artifacts/2a
+          gh run download 42521937787 --repo "${GITHUB_REPOSITORY}" --name zth01-jq-v20-v7.0.02 --dir /tmp/prucho2-artifacts/2b
+          gh run download 42521942528 --repo "${GITHUB_REPOSITORY}" --name gxhtv4-pc2pc3-v7.0.04 --dir /tmp/prucho2-artifacts/2c
+      - name: Copy latest specific BIN and OTA files
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          entries = [
+              ('2a', '0x2A - Sonoff SNZB-02', 'V7.0.02', '022a', '70023001'),
+              ('2b', '0x2B - ZTH01 JQ V2.0', 'V7.0.02', '022b', '70023001'),
+              ('2c', '0x2C - GXHTV4', 'V7.0.04', '022c', '70043001'),
+          ]
+          for slot, folder, version, image_type, hex_version in entries:
+              root = Path('/tmp/prucho2-artifacts') / slot
+              dest = Path('New Firmware Prucho2') / folder
+              dest.mkdir(parents=True, exist_ok=True)
+              bins = list(root.rglob(f'*_{version}.bin'))
+              if len(bins) != 1:
+                  raise RuntimeError(f'{slot}: expected exactly one versioned BIN, got {bins}')
+              raw = bins[0].read_bytes()
+              assert len(raw) > 64
+              assert int.from_bytes(raw[2:6], 'little') == int(hex_version, 16)
+              assert int.from_bytes(raw[18:20], 'little') == 0x6565
+              assert int.from_bytes(raw[20:22], 'little') == int(image_type, 16)
+              from shutil import copyfile
+              for old in dest.glob('*.bin'):
+                  old.unlink()
+              for old in dest.glob('*.zigbee'):
+                  old.unlink()
+              copyfile(bins[0], dest / bins[0].name)
+              ota_files = [p for p in root.rglob('*.zigbee') if image_type in p.name.lower() and hex_version in p.name.lower()]
+              if len(ota_files) != 1:
+                  raise RuntimeError(f'{slot}: expected one matching OTA, got {ota_files}')
+              copyfile(ota_files[0], dest / ota_files[0].name)
+              print(f'{folder}: BIN {bins[0].name}, OTA {ota_files[0].name}')
+          PY
+      - name: Commit binary archive to the repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "New Firmware Prucho2"
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: archive verified Prucho2 firmware BIN and OTA"
+            git push
+          fi
