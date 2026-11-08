@@ -26,6 +26,6 @@ jobs:
                   im.verify()
               with Image.open(p) as im:
                   im.load()
-                  assert im.width > 150 and im.height > 80, (p,im.size)
+                  assert im.width >= 180 and im.height >= 70, (p,im.size)
                   print(f'{p}: valid PCB photograph {im.width}x{im.height}')
           PY
