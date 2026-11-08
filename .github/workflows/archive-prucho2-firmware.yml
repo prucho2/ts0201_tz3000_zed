@@ -47,7 +47,7 @@ jobs:
               root = Path('/tmp/prucho2-artifacts') / slot
               dest = Path('New Firmware Prucho2') / folder
               dest.mkdir(parents=True, exist_ok=True)
-              bins = list(root.rglob(f'*_{version}.bin'))
+              bins = list(root.rglob('*_last_version.bin'))
               if len(bins) != 1:
                   raise RuntimeError(f'{slot}: expected exactly one versioned BIN, got {bins}')
               raw = bins[0].read_bytes()
@@ -60,7 +60,7 @@ jobs:
                   old.unlink()
               for old in dest.glob('*.zigbee'):
                   old.unlink()
-              copyfile(bins[0], dest / bins[0].name)
+              copyfile(bins[0], dest / (bins[0].name.removesuffix('_last_version.bin') + '_' + version + '.bin'))
               ota_files = [p for p in root.rglob('*.zigbee') if image_type in p.name.lower() and hex_version in p.name.lower()]
               if len(ota_files) != 1:
                   raise RuntimeError(f'{slot}: expected one matching OTA, got {ota_files}')
