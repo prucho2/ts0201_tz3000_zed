@@ -47,7 +47,7 @@
 
 #if (BOARD == BOARD_SONOFF_SNZB02_CHT8305)
 #define APP_RELEASE                         0x70        // custom Sonoff: v7.0
-#define APP_BUILD                           0x01        // custom Sonoff: v7.0.01
+#define APP_BUILD                           0x02        // custom Sonoff: v7.0.02
 #else
 #define APP_RELEASE                         0x10        // upstream v1.0
 #define APP_BUILD                           0x10        // upstream v1.0.10
