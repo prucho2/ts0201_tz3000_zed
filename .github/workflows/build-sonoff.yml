@@ -45,10 +45,10 @@ jobs:
           from datetime import datetime, timezone
           stamp = datetime.now(timezone.utc).strftime('%Y%m%d')
           chars = ",".join(repr(c) for c in stamp)
-          content = ("#ifndef SONOFF_BUILD_DATE_H\\n"
-                     "#define SONOFF_BUILD_DATE_H\\n"
-                     f"#define SONOFF_BUILD_DATE {{8,{chars}}}\\n"
-                     "#endif\\n")
+          content = ("#ifndef SONOFF_BUILD_DATE_H\n"
+                     "#define SONOFF_BUILD_DATE_H\n"
+                     f"#define SONOFF_BUILD_DATE {{8,{chars}}}\n"
+                     "#endif\n")
           Path("src/include/sonoff_build_date.h").write_text(content)
           print(f"Generated Zigbee dateCode: {stamp}")
           PY
