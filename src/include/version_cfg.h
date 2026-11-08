@@ -34,6 +34,7 @@
 #define BOARD_ZG_227ZS                      0x23
 #define BOARD_TH01_ZBEACON                  0x24
 #define BOARD_Z_WXD                         0x28
+#define BOARD_SONOFF_SNZB02_CHT8305          0x2A
 
 #ifndef BOARD
 //#define BOARD                               BOARD_HXDZ_ZBWSD_V02
@@ -44,8 +45,13 @@
 #define BOARD                               BOARD_TH01_ZBEACON
 #endif
 
-#define APP_RELEASE                         0x10        //app release 1.0
-#define APP_BUILD                           0x10        //app build 10, full version - v1.0.10
+#if (BOARD == BOARD_SONOFF_SNZB02_CHT8305)
+#define APP_RELEASE                         0x70        // custom Sonoff: v7.0
+#define APP_BUILD                           0x01        // custom Sonoff: v7.0.01
+#else
+#define APP_RELEASE                         0x10        // upstream v1.0
+#define APP_BUILD                           0x10        // upstream v1.0.10
+#endif
 
 #define STACK_RELEASE                       0x30        //stack release 3.0
 #define STACK_BUILD                         0x01        //stack build 01
