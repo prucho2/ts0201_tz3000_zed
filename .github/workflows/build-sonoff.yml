@@ -1,0 +1,60 @@
+name: Build Sonoff SNZB-02 firmware
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Slacky-DIY firmware fork
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make python3 curl bzip2 libncurses5
+
+      - name: Use same Telink TC32 GCC toolchain as ZigbeeTLc-PIR
+        run: |
+          sudo mkdir -p /opt/tc32
+          curl -fL --retry 3 \
+            "https://raw.githubusercontent.com/prucho2/ZigbeeTLc-PIR/master/tools/linux/tc32_gcc_v2.0.tar.bz2" \
+            -o /tmp/tc32_gcc_v2.0.tar.bz2
+          sudo tar -xjf /tmp/tc32_gcc_v2.0.tar.bz2 -C /opt/tc32
+          test -x /opt/tc32/bin/tc32-elf-gcc
+          /opt/tc32/bin/tc32-elf-gcc --version
+
+      - name: Build Sonoff board 0x2A
+        run: |
+          make clean
+          make PROJECT_NAME=ts0201_tz3000_0x2a_zed \
+            PROJECT_DEF=-DBOARD=BOARD_SONOFF_SNZB02_CHT8305 \
+            DEBUG=-DUART_PRINTF_MODE=OFF
+
+      - name: Validate built firmware
+        run: |
+          set -eu
+          test -s bin/ts0201_tz3000_0x2a_zed_last_version.bin
+          ls -lh bin/*0x2a*
+          python3 - <<'PY'
+          import pathlib
+          p = pathlib.Path('bin/ts0201_tz3000_0x2a_zed_last_version.bin')
+          b = p.read_bytes()
+          assert len(b) > 64
+          version = int.from_bytes(b[2:6], 'little')
+          print(f'Raw firmware length: {len(b)} bytes, file version: 0x{version:08x}')
+          assert version == 0x70013001, f'Unexpected version: 0x{version:08x}'
+          PY
+
+      - name: Publish build artifacts for download
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonoff-snzb02-cht8305-v7.0.01
+          path: |
+            bin/ts0201_tz3000_0x2a_zed*.bin
+            bin/*ts0201_tz3000_0x2a_zed.zigbee
+          if-no-files-found: error
+          retention-days: 30
