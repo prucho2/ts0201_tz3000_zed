@@ -21,7 +21,7 @@ Each board folder contains its hardware description, MCU GPIO mapping and physic
 
 ### Related tested boards
 
-A separate eWeLink TLSR8656F512 / CHT8305 sensor with Zigbee model `CK-TLSR8656-SS5-01(7014)` was hardware-tested using the **0x2A** firmware because its tested I²C, LED and button GPIOs match Sonoff SNZB-02. It does not need a duplicate profile here.
+**CONFIRMED: one firmware works on TWO different devices.** The [Sonoff 0x2A firmware](0x2A%20-%20Sonoff%20SNZB-02/README.md#confirmed-compatible-additional-board) has been flashed and tested on both **Sonoff SNZB-02 (TLSR8258)** and **eWeLink CK-TLSR8656-SS5-01(7014) (TLSR8656F512)**. Both use CHT8305 and the identical measured SDA/SCL/LED/button GPIO layout. A separate eWeLink build is not necessary.
 
 ZG-227Z / ZG-227ZS with AHT20 is already supported by upstream Slacky-DIY as board **0x23** and is therefore not duplicated here.
 
