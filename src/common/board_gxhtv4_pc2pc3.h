@@ -7,14 +7,29 @@
  * SCL PC3 (pin 23). LED cathode switched via transistor driven by
  * PB4 (pin 14): GPIO HIGH is expected to turn the transistor on.
  * Pairing pushbutton grounds PC0 (pin 20).
- * First-release sensor identification and LED polarity require bench test.
+ * LED polarity/button already verified in hardware; GXHTV4 stability testing continues.
  */
 #define ZCL_BASIC_MFG_NAME  {10,'S','l','a','c','k','y','-','D','I','Y'}
 #define ZCL_BASIC_MODEL_ID  {12,'T','S','0','2','0','1','-','z','-','S','l','D'}
-#define I2C_DRV_USED        I2C_DRV_HARD
+#define I2C_DRV_USED        I2C_DRV_SOFT
 #define SENSOR_USED         SENSOR_SHT40
-#define I2C_PIN_GROUP       I2C_GPIO_GROUP_C2C3
-#define I2C_CLOCK           100000
+/* Same bit-banged SHT40 bus method as upstream Slacky-DIY, with
+ * our independently traced GPIOs (SDA PC2 and SCL PC3). */
+#define I2C_SDA             GPIO_PC2
+#define PC2_FUNC            AS_GPIO
+#define PC2_INPUT_ENABLE    1
+#define PC2_OUTPUT_ENABLE   0
+#define PC2_DATA_OUT        0
+#define PULL_WAKEUP_SRC_PC2 PM_PIN_PULLUP_10K
+
+#define I2C_SCL             GPIO_PC3
+#define PC3_FUNC            AS_GPIO
+#define PC3_INPUT_ENABLE    1
+#define PC3_OUTPUT_ENABLE   0
+#define PC3_DATA_OUT        0
+#define PULL_WAKEUP_SRC_PC3 PM_PIN_PULLUP_10K
+
+#define I2C_CLOCK           200000
 
 #if UART_PRINTF_MODE
 #define DEBUG_INFO_TX_PIN   GPIO_PB1
