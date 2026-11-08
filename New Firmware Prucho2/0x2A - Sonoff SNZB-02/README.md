@@ -26,6 +26,12 @@ Once the firmware archive is published, the current **BIN** and **.zigbee OTA** 
 - [Build workflow](../../.github/workflows/build-sonoff.yml)
 - [Build history and artifacts](https://github.com/prucho2/ts0201_tz3000_zed/actions/workflows/build-sonoff.yml)
 
+## Confirmed compatible additional board
+
+The same **board 0x2A v7.0.02** BIN was successfully flashed and tested on a second, distinct device: **eWeLink CK-TLSR8656-SS5-01(7014)**, with a **TLSR8656F512** processor and **CHT8305** sensor. The user measured exactly the same MCU pin mapping: SDA **PC2 / pin 22**, SCL **PC3 / pin 23**, LED **PB4 / pin 14**, pushbutton **PD3 / pin 32**.
+
+**Both Sonoff SNZB-02 (TLSR8258) and eWeLink 7014 (TLSR8656F512) are confirmed working with the same 0x2A firmware.** This is a tested compatibility note, not a separate firmware variant. Always retain the original flash backup for each physical device.
+
 ## PCB photos
 
 Photos from the board investigation are stored in `images/` when available. They show the actual board, not a stock example.
