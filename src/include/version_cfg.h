@@ -51,7 +51,7 @@
 #define APP_BUILD                           0x02        // custom Sonoff: v7.0.02
 #elif (BOARD == BOARD_ZTH01_JQ_V20)
 #define APP_RELEASE                         0x70        // custom ZTH01: v7.0
-#define APP_BUILD                           0x03        // custom ZTH01: v7.0.03
+#define APP_BUILD                           0x02        // custom ZTH01: v7.0.02
 #else
 #define APP_RELEASE                         0x10        // upstream v1.0
 #define APP_BUILD                           0x10        // upstream v1.0.10
