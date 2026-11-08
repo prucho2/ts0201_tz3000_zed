@@ -64,7 +64,11 @@ static void forceReportTemperature(void *args) {
 
     pAttrEntry = zcl_findAttribute(APP_ENDPOINT1, ZCL_CLUSTER_MS_TEMPERATURE_MEASUREMENT, ZCL_TEMPERATURE_MEASUREMENT_ATTRID_MEASUREDVALUE);
 
-    if (pAttrEntry) {
+    if (pAttrEntry
+#if (BOARD == BOARD_GXHTV4_PC2PC3)
+        && (*(int16_t *)pAttrEntry->data != (int16_t)0x8000)
+#endif
+    ) {
         report.attr[report.numAttr].attrID = pAttrEntry->id;
         report.attr[report.numAttr].dataType = pAttrEntry->type;
         report.attr[report.numAttr].attrData = pAttrEntry->data;
@@ -151,7 +155,11 @@ static void forceReportHumidity(void *args) {
 
     pAttrEntry = zcl_findAttribute(APP_ENDPOINT1, ZCL_CLUSTER_MS_RELATIVE_HUMIDITY, ZCL_RELATIVE_HUMIDITY_MEASUREMENT_ATTRID_MEASUREDVALUE);
 
-    if (pAttrEntry) {
+    if (pAttrEntry
+#if (BOARD == BOARD_GXHTV4_PC2PC3)
+        && (*(uint16_t *)pAttrEntry->data != 0xFFFF)
+#endif
+    ) {
         report.attr[report.numAttr].attrID = pAttrEntry->id;
         report.attr[report.numAttr].dataType = pAttrEntry->type;
         report.attr[report.numAttr].attrData = pAttrEntry->data;
