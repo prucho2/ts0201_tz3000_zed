@@ -57,7 +57,7 @@ TOOLS_PATH := ./tools
 VERSION_RELEASE := V$(shell awk -F " " '/APP_RELEASE/ {gsub("0x",""); printf "%.1f", $$3/10.0; exit}' $(SRC_PATH)/include/version_cfg.h)
 VERSION_BUILD := $(shell awk -F " " '/APP_BUILD/ {gsub("0x",""); printf "%02d", $$3; exit}' ./src/include/version_cfg.h)
 ifeq ($(PROJECT_NAME),ts0201_tz3000_0x2a_zed)
-ZCL_VERSION_FILE := $(shell date -u +%Y%m%d |  sed -e "'s/./\'&\',/g'" -e "'s/.$//'")
+ZCL_VERSION_FILE := $(shell date -u +%Y%m%d | sed "s/./'&',/g;s/,$//")
 else
 ZCL_VERSION_FILE := $(shell git log -1 --format=%cd --date=format:%Y%m%d -- src |  sed -e "'s/./\'&\',/g'" -e "'s/.$//'")
 endif
