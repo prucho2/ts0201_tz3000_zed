@@ -405,8 +405,19 @@ static void app_sht40_set_humidity() {
 }
 
 static void app_sht40_measurement() {
-
+    /* Hardware I2C registers may be lost after deep sleep with retention.
+     * Bring the bus back before EVERY SHT4x reading. */
+    app_i2c_init();
     uint8_t ret = sht40_readSensor();
+#if (BOARD == BOARD_GXHTV4_PC2PC3)
+    if (ret != SENSOR_OK) {
+        /* A transient NAK during sensor wakeup must not overwrite the last
+         * valid Zigbee measurements. Retry once after bus reinit. */
+        app_i2c_init();
+        sleep_ms(5);
+        ret = sht40_readSensor();
+    }
+#endif
 
 #if UART_PRINTF_MODE && DEBUG_SENSOR_EN
     sensor_error_codes_print_result("app_sht40_measurement", ret, sht40_dev.addr);
