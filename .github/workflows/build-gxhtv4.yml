@@ -73,7 +73,7 @@ jobs:
           assert len(b) > 64
           version = int.from_bytes(b[2:6], 'little')
           print(f'Raw firmware length: {len(b)} bytes, file version: 0x{version:08x}')
-          assert version == 0x70033001, f'Unexpected version: 0x{version:08x}'
+          assert version == 0x70043001, f'Unexpected version: 0x{version:08x}'
           assert int.from_bytes(b[18:20], 'little') == 0x6565, 'Unexpected manufacturer code'
           assert int.from_bytes(b[20:22], 'little') == 0x022c, 'Unexpected board OTA image type'
           today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d')
@@ -86,7 +86,7 @@ jobs:
       - name: Publish build artifacts for download
         uses: actions/upload-artifact@v4
         with:
-          name: gxhtv4-pc2pc3-v7.0.03
+          name: gxhtv4-pc2pc3-v7.0.04
           path: |
             bin/ts0201_tz3000_0x2c_zed*.bin
             bin/*ts0201_tz3000_0x2c_zed.zigbee
