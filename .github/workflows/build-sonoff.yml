@@ -52,18 +52,24 @@ jobs:
           ls -lh bin/*0x2a*
           python3 - <<'PY'
           import pathlib
+          import datetime
           p = pathlib.Path('bin/ts0201_tz3000_0x2a_zed_last_version.bin')
           b = p.read_bytes()
           assert len(b) > 64
           version = int.from_bytes(b[2:6], 'little')
           print(f'Raw firmware length: {len(b)} bytes, file version: 0x{version:08x}')
-          assert version == 0x70013001, f'Unexpected version: 0x{version:08x}'
+          assert version == 0x70023001, f'Unexpected version: 0x{version:08x}'
+          today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d')
+          assert bytes([8]) + today.encode('ascii') in b, (
+              f'Build date {today} not found in firmware, check BUILD_DATE macro')
+          assert bytes([8]) + b'20250726' not in b, 'Old fallback date detected'
+          print(f'ZCL dateCode verified in raw firmware: {today}')
           PY
 
       - name: Publish build artifacts for download
         uses: actions/upload-artifact@v4
         with:
-          name: sonoff-snzb02-cht8305-v7.0.01
+          name: sonoff-snzb02-cht8305-v7.0.02
           path: |
             bin/ts0201_tz3000_0x2a_zed*.bin
             bin/*ts0201_tz3000_0x2a_zed.zigbee
