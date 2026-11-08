@@ -1,0 +1,94 @@
+name: Build GXHTV4 PC2PC3 firmware
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-gxhtv4.yml'
+      - 'src/**'
+      - 'makefile'
+      - 'project.mk'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Slacky-DIY firmware fork
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make python3 curl bzip2 libncurses5
+
+      - name: Use same Telink TC32 GCC toolchain as ZigbeeTLc-PIR
+        run: |
+          sudo mkdir -p /opt/tc32
+          curl -fL --retry 3 \
+            "https://raw.githubusercontent.com/prucho2/ZigbeeTLc-PIR/master/tools/linux/tc32_gcc_v2.0.tar.bz2" \
+            -o /tmp/tc32_gcc_v2.0.tar.bz2
+          sudo tar -xjf /tmp/tc32_gcc_v2.0.tar.bz2 -C /opt/tc32
+          COMPILER=$(find /opt/tc32 -type f -name tc32-elf-gcc -print -quit)
+          test -n "$COMPILER"
+          if [ "$(dirname "$COMPILER")" != "/opt/tc32/bin" ]; then
+            sudo ln -s "$(dirname "$COMPILER")" /opt/tc32/bin
+          fi
+          /opt/tc32/bin/tc32-elf-gcc --version
+
+      - name: Generate fresh Zigbee dateCode in dedicated header
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from datetime import datetime, timezone
+          stamp = datetime.now(timezone.utc).strftime('%Y%m%d')
+          chars = ",".join(repr(c) for c in stamp)
+          content = ("#ifndef SONOFF_BUILD_DATE_H\n"
+                     "#define SONOFF_BUILD_DATE_H\n"
+                     f"#define SONOFF_BUILD_DATE {{8,{chars}}}\n"
+                     "#endif\n")
+          Path("src/include/sonoff_build_date.h").write_text(content)
+          print(f"Generated Zigbee dateCode: {stamp}")
+          PY
+
+      - name: Build GXHTV4 board 0x2C
+        run: |
+          make clean
+          make PROJECT_NAME=ts0201_tz3000_0x2c_zed \
+            PROJECT_DEF=-DBOARD=BOARD_GXHTV4_PC2PC3 \
+            DEBUG=-DUART_PRINTF_MODE=OFF
+
+      - name: Validate built firmware
+        run: |
+          set -eu
+          test -s bin/ts0201_tz3000_0x2c_zed_last_version.bin
+          ls -lh bin/*0x2c*
+          python3 - <<'PY'
+          import pathlib
+          import datetime
+          p = pathlib.Path('bin/ts0201_tz3000_0x2c_zed_last_version.bin')
+          b = p.read_bytes()
+          assert len(b) > 64
+          version = int.from_bytes(b[2:6], 'little')
+          print(f'Raw firmware length: {len(b)} bytes, file version: 0x{version:08x}')
+          assert version == 0x70023001, f'Unexpected version: 0x{version:08x}'
+          assert int.from_bytes(b[18:20], 'little') == 0x6565, 'Unexpected manufacturer code'
+          assert int.from_bytes(b[20:22], 'little') == 0x022c, 'Unexpected board OTA image type'
+          today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d')
+          assert bytes([8]) + today.encode('ascii') in b, (
+              f'Build date {today} not found in firmware, check BUILD_DATE macro')
+          assert bytes([8]) + b'20250726' not in b, 'Old fallback date detected'
+          print(f'ZCL dateCode verified in raw firmware: {today}')
+          PY
+
+      - name: Publish build artifacts for download
+        uses: actions/upload-artifact@v4
+        with:
+          name: gxhtv4-pc2pc3-v7.0.02
+          path: |
+            bin/ts0201_tz3000_0x2c_zed*.bin
+            bin/*ts0201_tz3000_0x2c_zed.zigbee
+          if-no-files-found: error
+          retention-days: 30
