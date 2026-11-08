@@ -178,6 +178,11 @@ void user_app_init(void)
 #endif
 
     app_sensor_init();
+#if (BOARD == BOARD_GXHTV4_PC2PC3)
+    /* Obtain valid ZCL values before the first interview / report.
+     * Leave unknown sentinel intact if the physical sensor is unavailable. */
+    app_sensor_measurement();
+#endif
 
 //#if UART_PRINTF_MODE
 //    printf("IMAGE_TYPE: 0x%x\r\n", IMAGE_TYPE);
