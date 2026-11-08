@@ -132,6 +132,7 @@
 #include "board_th01_zbeacon.h"
 #include "board_z_wxd.h"
 #include "board_sonoff_snzb02_cht8305.h"
+#include "board_zth01_jq_v20.h"
 #endif
 
 /* Voltage detect module */
