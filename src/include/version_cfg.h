@@ -55,7 +55,7 @@
 #define APP_BUILD                           0x02        // custom ZTH01: v7.0.02
 #elif (BOARD == BOARD_GXHTV4_PC2PC3)
 #define APP_RELEASE                         0x70        // custom third board v7.0
-#define APP_BUILD                           0x03        // GXHTV4 I2C retry fix v7.0.03
+#define APP_BUILD                           0x04        // GXHTV4 software I2C v7.0.04
 #else
 #define APP_RELEASE                         0x10        // upstream v1.0
 #define APP_BUILD                           0x10        // upstream v1.0.10
