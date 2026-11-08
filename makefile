@@ -2,6 +2,10 @@
 PROJECT_NAME ?= ts0201_tz3000_0x15_zed
 PROJECT_DEF ?= "-DBOARD=BOARD_HXDZ_ZBWSD_V02"
 
+ifeq ($(PROJECT_NAME),ts0201_tz3000_0x2c_zed)
+	MANUF_CODE = 25957
+	IMAGE_TYPE = 556
+else
 ifeq ($(PROJECT_NAME),ts0201_tz3000_0x2b_zed)
 	MANUF_CODE = 25957
 	IMAGE_TYPE = 555
@@ -21,6 +25,7 @@ else
 		MANUF_CODE = 4417
 		IMAGE_TYPE = 54179
 	endif
+endif
 endif
 endif
 endif
@@ -59,6 +64,10 @@ OUT_PATH := ./out
 BIN_PATH := ./bin
 MAKE_INCLUDES := ./make
 TOOLS_PATH := ./tools
+ifeq ($(PROJECT_NAME),ts0201_tz3000_0x2c_zed)
+VERSION_RELEASE := V7.0
+VERSION_BUILD := 02
+else
 ifeq ($(PROJECT_NAME),ts0201_tz3000_0x2b_zed)
 VERSION_RELEASE := V7.0
 VERSION_BUILD := 02
@@ -66,7 +75,8 @@ else
 VERSION_RELEASE := V$(shell awk -F " " '/APP_RELEASE/ {gsub("0x",""); printf "%.1f", $$3/10.0; exit}' $(SRC_PATH)/include/version_cfg.h)
 VERSION_BUILD := $(shell awk -F " " '/APP_BUILD/ {gsub("0x",""); printf "%02d", $3; exit}' ./src/include/version_cfg.h)
 endif
-ifneq ($(filter ts0201_tz3000_0x2a_zed ts0201_tz3000_0x2b_zed,$(PROJECT_NAME)),)
+endif
+ifneq ($(filter ts0201_tz3000_0x2a_zed ts0201_tz3000_0x2b_zed ts0201_tz3000_0x2c_zed,$(PROJECT_NAME)),)
 ZCL_VERSION_FILE :=  # Sonoff uses generated sonoff_build_date.h (dateCode), not BUILD_DATE
 else
 ZCL_VERSION_FILE := $(shell git log -1 --format=%cd --date=format:%Y%m%d -- src |  sed -e "'s/./\'&\',/g'" -e "'s/.$//'")
@@ -234,7 +244,7 @@ $(BIN_FILE): $(ELF_FILE)
 	@echo 'Create zigbee OTA file'
 	@python3 $(MAKE_OTA) -t $(PROJECT_NAME) -s "Slacky-DIY OTA" $(BIN_PATH)/$(PROJECT_NAME)_$(VERSION_RELEASE).$(VERSION_BUILD).bin 
 	@echo 'Create zigbee Tuya OTA file'
-ifneq ($(filter ts0201_tz3000_0x2a_zed ts0201_tz3000_0x2b_zed,$(PROJECT_NAME)),)
+ifneq ($(filter ts0201_tz3000_0x2a_zed ts0201_tz3000_0x2b_zed ts0201_tz3000_0x2c_zed,$(PROJECT_NAME)),)
 	@echo 'Custom board: preserve firmware file version and image type in OTA header'
 else
 	@python3 $(MAKE_OTA) -t $(PROJECT_NAME) -m $(MANUF_CODE) -i $(IMAGE_TYPE) -v0x1111114b -s "Slacky-DIY OTA" $(BIN_PATH)/$(PROJECT_NAME)_$(VERSION_RELEASE).$(VERSION_BUILD).bin
