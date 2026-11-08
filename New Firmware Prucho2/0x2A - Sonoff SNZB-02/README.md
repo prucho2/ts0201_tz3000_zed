@@ -30,4 +30,4 @@ Once the firmware archive is published, the current **BIN** and **.zigbee OTA** 
 
 Photos from the board investigation are stored in `images/` when available. They show the actual board, not a stock example.
 
-![Sonoff SNZB-02 board](images/pcb.jpg)
+A model-specific PCB photograph has not yet been archived here. Do not substitute a photograph of a different board revision.
