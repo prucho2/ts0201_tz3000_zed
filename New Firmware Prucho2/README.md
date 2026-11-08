@@ -36,3 +36,5 @@ Based on [Slacky-DIY original project](https://github.com/slacky1965/ts0201_tz30
 - [GXHTV4 builds](https://github.com/prucho2/ts0201_tz3000_zed/actions/workflows/build-gxhtv4.yml)
 
 The file archive is copied from specifically verified successful GitHub Actions artifacts by [archive-prucho2-firmware.yml](../.github/workflows/archive-prucho2-firmware.yml); this is not an automatic publishing step for every later compilation.
+
+> Archive sync: versioned, validated binaries and OTA images from the successful workflow runs.
