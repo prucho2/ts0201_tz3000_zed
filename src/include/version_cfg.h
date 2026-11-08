@@ -61,8 +61,13 @@
 #define BUILD_DATE "20250611"
 #endif
 
+#if (BOARD == BOARD_SONOFF_SNZB02_CHT8305)
+#include "sonoff_build_date.h"
+#define ZCL_BASIC_DATE_CODE    SONOFF_BUILD_DATE
+#else
 #ifndef ZCL_BASIC_DATE_CODE
 #define ZCL_BASIC_DATE_CODE    BUILD_DATE
+#endif
 #endif
 
 #ifndef ZCL_BASIC_LOC_DESC
