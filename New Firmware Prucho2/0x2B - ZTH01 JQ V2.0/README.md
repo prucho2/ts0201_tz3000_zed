@@ -30,6 +30,6 @@ The current BIN and OTA image will be archived here. Use the BIN for SWS flashin
 
 ## PCB photos
 
-![Photographed ZTH01 JQ2010025 V2.0 PCB](images/pcb.jpg)
+![Photographed ZTH01 JQ2010025 V2.0 PCB](images/pcb.webp)
 
 Photo taken from the actual board under investigation. A small compressed preview is included; original high-resolution pictures remain outside this repository.
