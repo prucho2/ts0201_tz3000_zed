@@ -1,10 +1,6 @@
 name: Archive current Prucho2 firmware into Code
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'New Firmware Prucho2/README.md'
   workflow_dispatch:
 
 permissions:
@@ -39,9 +35,9 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           entries = [
-              ('2a', '0x2A - Sonoff SNZB-02', 'V7.0.02', '022a', '70023001'),
-              ('2b', '0x2B - ZTH01 JQ V2.0', 'V7.0.02', '022b', '70023001'),
-              ('2c', '0x2C - GXHTV4', 'V7.0.04', '022c', '70043001'),
+              ('2a', '0x2A - SONOFF-SNZB-02-_TZ3000_fllyghyj + eWeLink 7014', 'V7.0.02', '022a', '70023001'),
+              ('2b', '0x2B - ZTH01 30201 0025-V2.0', 'V7.0.02', '022b', '70023001'),
+              ('2c', '0x2C - TS0201 AoYan', 'V7.0.04', '022c', '70043001'),
           ]
           for slot, folder, version, image_type, hex_version in entries:
               root = Path('/tmp/prucho2-artifacts') / slot

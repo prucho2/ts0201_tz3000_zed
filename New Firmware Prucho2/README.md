@@ -1,40 +1,34 @@
 # New Firmware Prucho2
 
-This directory documents **custom hardware profiles added to the Slacky-DIY TS0201 Zigbee temperature/humidity firmware fork**. Only boards not already supported by the upstream project are listed. Hardware pinouts were measured on physical devices with a multimeter and checked in working firmware.
+Custom boards added to the [Slacky-DIY TS0201 Zigbee temperature and humidity firmware](https://github.com/slacky1965/ts0201_tz3000_zed), with GPIO traced using a multimeter and verified on real hardware.
 
-## Board directory
+## Hardware projects
 
-| Board ID | Board / hardware | Sensor / protocol | Current version | Technical documentation |
+| Board | Supported device(s) | Sensor/driver | Current firmware | Details |
 |---|---|---|---|---|
-| **0x2A** | Sonoff SNZB-02 | SensyLink CHT8305 | **v7.0.02** | [Sonoff SNZB-02](0x2A%20-%20Sonoff%20SNZB-02/README.md) |
-| **0x2B** | ZTH01, JQ2010025-V2.0 | SHT30-compatible | **v7.0.02** | [ZTH01 JQ V2.0](0x2B%20-%20ZTH01%20JQ%20V2.0/README.md) |
-| **0x2C** | GXHTV4 PC2/PC3 | SHT4x-compatible | **v7.0.04** | [GXHTV4](0x2C%20-%20GXHTV4/README.md) |
+| **0x2A** | **SONOFF-SNZB-02-_TZ3000_fllyghyj** and **eWeLink CK-TLSR8656-SS5-01(7014)** — **one shared firmware for both** | CHT8305 | **v7.0.02** | [Hardware, pinout and photos](0x2A%20-%20SONOFF-SNZB-02-_TZ3000_fllyghyj%20%2B%20eWeLink%207014/README.md) |
+| **0x2B** | **ZTH01, PCB 30201 0025-V2.0** | SHT30-compatible | **v7.0.02** | [Hardware, pinout and photo](0x2B%20-%20ZTH01%2030201%200025-V2.0/README.md) |
+| **0x2C** | **TS0201 AoYan** | GXHTV4 / SHT4x-compatible | **v7.0.04** | [Hardware, pinout and photos](0x2C%20-%20TS0201%20AoYan/README.md) |
 
-Each board folder contains its hardware description, MCU GPIO mapping and physical pin numbers, sensor selection, software/hardware I²C mode, and links to the exact source profile. **The latest selected BIN and Zigbee OTA image are archived alongside the README**; subsequent work-in-progress versions continue to build under **GitHub Actions**, without replacing these files automatically.
+These are **device/project names**, independent of the source-code identifiers used for builds. Existing board IDs, firmware versions, BIN and OTA contents are unchanged.
 
-### Build and flashing
+Each project folder contains its current **.bin** (Telink BDT/SWS) and **.zigbee** (OTA image), plus detailed GPIO notes. Future experimental builds remain in [GitHub Actions](https://github.com/prucho2/ts0201_tz3000_zed/actions), without automatic replacement of these known-good archives.
 
-- `*.bin` — raw Telink firmware for SWS flashing with Telink Burning Tool (B85).
-- `*.zigbee` — Zigbee OTA image; only use where the current device's manufacturer/image-type compatibility permits it.
-- Before using SWS, preserve the complete original flash backup, including original device identity and factory data.
-- Each board has its own Zigbee OTA image type (**0x022A**, **0x022B**, **0x022C**); never interchange binary images across different boards without verifying compatibility.
+All project photos are linked **directly to full-resolution images hosted by telsim.pl** (not stored as small copies in GitHub).
 
-### Related tested boards
+## Compatibility and programming
 
-**CONFIRMED: one firmware works on TWO different devices.** The [Sonoff 0x2A firmware](0x2A%20-%20Sonoff%20SNZB-02/README.md#confirmed-compatible-additional-board) has been flashed and tested on both **Sonoff SNZB-02 (TLSR8258)** and **eWeLink CK-TLSR8656-SS5-01(7014) (TLSR8656F512)**. Both use CHT8305 and the identical measured SDA/SCL/LED/button GPIO layout. A separate eWeLink build is not necessary.
+- **0x2A** has been flashed and verified on **two physically different boards**: SONOFF-SNZB-02-_TZ3000_fllyghyj (TLSR8258) and eWeLink CK-TLSR8656-SS5-01(7014) (TLSR8656F512).
+- Back up the original flash and factory IEEE/calibration data before flashing via SWS.
+- OTA images have distinct image types **0x022A / 0x022B / 0x022C**; validate manufacturer and image type before OTA.
+- The **ZG-227Z / ZG-227ZS (AHT20)** already has a matching original Slacky-DIY profile **0x23** and does not need a duplicate here.
 
-ZG-227Z / ZG-227ZS with AHT20 is already supported by upstream Slacky-DIY as board **0x23** and is therefore not duplicated here.
+## Source code and builds
 
-### Source and attribution
+| Board | GPIO profile in source | Build workflow |
+|---|---|---|
+| 0x2A | [board_sonoff_snzb02_cht8305.h](../src/common/board_sonoff_snzb02_cht8305.h) | [Sonoff build](../.github/workflows/build-sonoff.yml) |
+| 0x2B | [board_zth01_jq_v20.h](../src/common/board_zth01_jq_v20.h) | [ZTH01 build](../.github/workflows/build-zth01.yml) |
+| 0x2C | [board_gxhtv4_pc2pc3.h](../src/common/board_gxhtv4_pc2pc3.h) | [AoYan build (GXHTV4 board profile)](../.github/workflows/build-gxhtv4.yml) |
 
-Based on [Slacky-DIY original project](https://github.com/slacky1965/ts0201_tz3000_zed) and GPIO investigation by Prucho2. Consult the individual README for measured hardware details. Original source files and upstream binaries remain in their existing repository locations.
-
-### Development workflows
-
-- [Sonoff builds](https://github.com/prucho2/ts0201_tz3000_zed/actions/workflows/build-sonoff.yml)
-- [ZTH01 builds](https://github.com/prucho2/ts0201_tz3000_zed/actions/workflows/build-zth01.yml)
-- [GXHTV4 builds](https://github.com/prucho2/ts0201_tz3000_zed/actions/workflows/build-gxhtv4.yml)
-
-The versioned BIN files are explicitly staged despite upstream `.gitignore` rules. The file archive is copied from specifically verified successful GitHub Actions artifacts by [archive-prucho2-firmware.yml](../.github/workflows/archive-prucho2-firmware.yml); this is not an automatic publishing step for every later compilation.
-
-> Archive sync: versioned, validated binaries and OTA images from the successful workflow runs.
+BIN/OTA archiving is manual through [archive-prucho2-firmware.yml](../.github/workflows/archive-prucho2-firmware.yml) and does not run for each new build.
