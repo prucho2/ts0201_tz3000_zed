@@ -18,6 +18,9 @@
 #include "app_utility.h"
 #include "app_i2c.h"
 #include "app_sensor.h"
+#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+#include "app_pir_prucho2.h"
+#endif
 #include "app_binding.h"
 #include "zcl_custom_attr.h"
 #include "zcl_onoffSwitchCfg.h"
