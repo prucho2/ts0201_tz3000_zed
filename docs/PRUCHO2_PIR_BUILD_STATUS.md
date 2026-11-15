@@ -2,9 +2,9 @@
 
 Workflow result: **success**
 
-Source SHA: `cc8185324638462ae88aa36e66cb734f19a07657`
+Source SHA: `711bbbd8639c1ef181bc3746cfb8cb476a7828b5`
 
-Run: https://github.com/prucho2/ts0201_tz3000_zed/actions/runs/43752694975
+Run: https://github.com/prucho2/ts0201_tz3000_zed/actions/runs/43763132746
 
 This is development-only and not approved for flashing.
 
@@ -69,7 +69,7 @@ Create Flash image (binary format)
 copy from `./out/prucho2_zg204zl_pir.elf' [elf32-littletc32] to `./out/prucho2_zg204zl_pir.bin' [binary]
 Firmware patched!
 Create zigbee OTA file
-./bin/6565-022d-01413001-prucho2_zg204zl_pir.zigbee was created with ZCL OTA Header.
+./bin/6565-022d-01423001-prucho2_zg204zl_pir.zigbee was created with ZCL OTA Header.
 Create zigbee Tuya OTA file
 Custom board: preserve firmware file version and image type in OTA header
 rm -rf ./bin/1141-d3a3-1111114b-ts0201_tz3000_0x23_zed.zigbee   
@@ -82,8 +82,8 @@ Finished building: out/prucho2_zg204zl_pir.lst
  
 Invoking: Print Size
    text	   data	    bss	    dec	    hex	filename
- 151460	    816	  13268	 165544	  286a8	./out/prucho2_zg204zl_pir.elf
- 151460	    816	  13268	 165544	  286a8	(TOTALS)
+ 151644	    816	  13288	 165748	  28774	./out/prucho2_zg204zl_pir.elf
+ 151644	    816	  13288	 165748	  28774	(TOTALS)
 Finished building: sizedummy
  
 \`\`\`
