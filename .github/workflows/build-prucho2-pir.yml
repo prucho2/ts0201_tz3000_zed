@@ -5,9 +5,14 @@ on:
   push:
     branches:
       - dev/prucho2-pir-zg204zl
+    paths:
+      - 'src/**'
+      - 'project.mk'
+      - 'makefile'
+      - '.github/workflows/build-prucho2-pir.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -42,7 +47,7 @@ jobs:
           PY
       - name: Build independent ZG-204ZL PIR target
         run: |
-          make PROJECT_NAME=prucho2_zg204zl_pir PROJECT_DEF=-DBOARD=BOARD_PRUCHO2_PIR_ZG204ZL DEBUG=-DUART_PRINTF_MODE=OFF
+          make PROJECT_NAME=prucho2_zg204zl_pir PROJECT_DEF=-DBOARD=BOARD_PRUCHO2_PIR_ZG204ZL DEBUG=-DUART_PRINTF_MODE=OFF 2>&1 | tee /tmp/prucho2-pir-build.log
       - name: Validate binary metadata
         run: |
           python3 - <<'PY'
@@ -67,3 +72,38 @@ jobs:
             bin/*prucho2_zg204zl_pir*.zigbee
           if-no-files-found: error
           retention-days: 14
+      - name: Record experimental build status on development branch
+        if: always()
+        env:
+          BUILD_STATUS: ${{ job.status }}
+        shell: bash
+        run: |
+          mkdir -p docs
+          {
+            echo "# ZG-204ZL experimental firmware build status"
+            echo
+            echo "Workflow result: **${BUILD_STATUS}**"
+            echo
+            echo "Source SHA: \`${GITHUB_SHA}\`"
+            echo
+            echo "Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            echo "This is development-only and not approved for flashing."
+            echo
+            echo "## Last compiler output"
+            echo
+            echo '\`\`\`text'
+            if [ -s /tmp/prucho2-pir-build.log ]; then
+              tail -n 75 /tmp/prucho2-pir-build.log
+            else
+              echo 'Compiler did not run or no log was captured.'
+            fi
+            echo '\`\`\`'
+          } > docs/PRUCHO2_PIR_BUILD_STATUS.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/PRUCHO2_PIR_BUILD_STATUS.md
+          if ! git diff --cached --quiet; then
+            git commit -m "ci: record experimental PIR build status [skip ci]"
+            git push
+          fi
