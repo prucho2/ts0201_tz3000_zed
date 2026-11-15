@@ -190,6 +190,7 @@ void user_app_init(void)
 
 #if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
     prucho2_pir_init();
+    prucho2_lux_init();
 #else
     app_sensor_init();
 #endif
@@ -213,6 +214,7 @@ void app_task(void) {
     button_handler();
 #if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
     prucho2_pir_task();
+    prucho2_lux_task();
 #else
     if (zb_isDeviceJoinedNwk()) {
         if (app_timer_exceed(g_appCtx.read_sensor_time, g_appCtx.read_sensor_period95p)) {
@@ -225,24 +227,16 @@ void app_task(void) {
         }
     }
 
- #endif
+#endif
     if(bdb_isIdle()) {
         report_handler();
 #if PM_ENABLE
         button_handler();
         if(!button_idle()) {
-#if DEBUG_PM_EN
-#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
-            app_pm_lowPowerEnter();
-#else
-            app_pm_lowPowerEnter();
-#endif
-#else
-#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+#if DEBUG_PM_EN || (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
             app_pm_lowPowerEnter();
 #else
             drv_pm_lowPowerEnter();
-#endif
 #endif
         }
 #endif
