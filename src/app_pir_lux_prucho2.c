@@ -25,10 +25,10 @@ static uint16_t zcl_illuminance(uint32_t lux) {
     uint32_t n = 0, fraction = 0;
     uint32_t normalized = lux;
     while (normalized >= 2) { normalized >>= 1; ++n; }
-    uint32_t v = (uint32_t)(((uint64_t)lux << 16) >> n);
+    uint32_t v = (lux << 15) >> n;
     for (uint8_t i = 0; i < 10; ++i) {
-        v = (uint32_t)(((uint64_t)v * v) >> 16);
-        if (v >= (2UL << 16)) {
+        v = (v * v) >> 15;
+        if (v >= (2UL << 15)) {
             v >>= 1;
             fraction |= 1U << (9-i);
         }
@@ -44,7 +44,7 @@ static uint16_t read_lux(void) {
     uint32_t vbat = drv_get_adc_data();
     drv_gpio_write(PRUCHO2_PIR_LUX_POWER_GPIO, true);
     drv_gpio_output_en(PRUCHO2_PIR_LUX_POWER_GPIO, true);
-    delay_us(500);
+    sleep_ms(1);
     drv_adc_mode_pin_set(DRV_ADC_BASE_MODE, PRUCHO2_PIR_LUX_ADC_GPIO);
     uint32_t sense = drv_get_adc_data();
     drv_adc_mode_pin_set(DRV_ADC_VBAT_MODE, VOLTAGE_DETECT_PIN);
@@ -56,9 +56,9 @@ static uint16_t read_lux(void) {
     /* ZG-204ZL photodetector voltage ratio and fourth-power response.
      * Scale to ~1000 lux, pending physical calibration on TEST.
      */
-    uint32_t ratio = (sense << 16) / vbat;
-    uint32_t ratio2 = (uint32_t)(((uint64_t)ratio * ratio) >> 16);
-    uint32_t ratio4 = (uint32_t)(((uint64_t)ratio2 * ratio2) >> 16);
+    uint32_t ratio = (sense * 65535UL) / vbat;
+    uint32_t ratio2 = (ratio * ratio) >> 16;
+    uint32_t ratio4 = (ratio2 * ratio2) >> 16;
     uint32_t lux = (ratio4 * 1000UL) >> 16;
     return zcl_illuminance(lux);
 }
