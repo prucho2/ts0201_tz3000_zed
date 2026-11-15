@@ -45,8 +45,13 @@ const uint16_t app_ep1_inClusterList[] =
 #ifdef ZCL_ON_OFF_SWITCH_CFG
     ZCL_CLUSTER_GEN_ON_OFF_SWITCH_CONFIG,
 #endif
+#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+    ZCL_CLUSTER_MS_OCCUPANCY_SENSING,
+    ZCL_CLUSTER_MS_ILLUMINANCE_MEASUREMENT,
+#else
     ZCL_CLUSTER_MS_TEMPERATURE_MEASUREMENT,
     ZCL_CLUSTER_MS_RELATIVE_HUMIDITY,
+#endif
 };
 
 const uint16_t app_ep2_inClusterList[] =
@@ -78,8 +83,10 @@ const uint16_t app_ep1_outClusterList[] =
     ZCL_CLUSTER_GEN_ON_OFF,
 #endif
     ZCL_CLUSTER_GEN_POWER_CFG,
+#if (BOARD != BOARD_PRUCHO2_PIR_ZG204ZL)
     ZCL_CLUSTER_MS_TEMPERATURE_MEASUREMENT,
     ZCL_CLUSTER_MS_RELATIVE_HUMIDITY,
+#endif
 };
 
 const uint16_t app_ep2_outClusterList[] =
@@ -337,6 +344,26 @@ const zclAttrInfo_t onoff_switch_cfg_attr2Tbl[] =
 
 #endif //ZCL_ON_OFF_SWITCH_CFG
 
+#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+/* Slacky-style event device: occupancy and illuminance use distinct clusters. */
+uint8_t prucho2_occupancy = 0;
+uint8_t prucho2_occupancy_type = 0; /* PIR */
+uint16_t prucho2_occupancy_hold = 3;
+uint16_t prucho2_lux = 0;
+const zclAttrInfo_t prucho2_occup_attrTbl[] = {
+    { ZCL_ATTRID_OCCUPANCY,                 ZCL_BITMAP8, RR,  &prucho2_occupancy },
+    { ZCL_ATTRID_OCCUPANCY_SENSOR_TYPE,     ZCL_ENUM8,   R,   &prucho2_occupancy_type },
+    { ZCL_ATTRID_PIR_OCCU2UNOCCU_DELAY,     ZCL_UINT16,  RW, (uint8_t *)&prucho2_occupancy_hold },
+    { ZCL_ATTRID_GLOBAL_CLUSTER_REVISION,   ZCL_UINT16,  R,  (uint8_t *)&zcl_attr_global_clusterRevision },
+};
+#define PRUCHO2_OCC_ATTR_NUM (sizeof(prucho2_occup_attrTbl) / sizeof(zclAttrInfo_t))
+const zclAttrInfo_t prucho2_lux_attrTbl[] = {
+    { ZCL_ATTRID_MEASURED_VALUE,            ZCL_UINT16, RR, (uint8_t *)&prucho2_lux },
+    { ZCL_ATTRID_GLOBAL_CLUSTER_REVISION,   ZCL_UINT16, R,  (uint8_t *)&zcl_attr_global_clusterRevision },
+};
+#define PRUCHO2_LUX_ATTR_NUM (sizeof(prucho2_lux_attrTbl) / sizeof(zclAttrInfo_t))
+#endif
+
 /**
  *  @brief Definition for simple switch ZCL specific cluster
  */
@@ -353,8 +380,13 @@ const zcl_specClusterInfo_t g_appEp1ClusterList[] = {
 #ifdef ZCL_POLL_CTRL
     {ZCL_CLUSTER_GEN_POLL_CONTROL,           MANUFACTURER_CODE_NONE, ZCL_POLLCTRL_ATTR_NUM,          pollCtrl_attrTbl,          zcl_pollCtrl_register,                  app_pollCtrlCb      },
 #endif
+#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+    {ZCL_CLUSTER_MS_OCCUPANCY_SENSING,      MANUFACTURER_CODE_NONE, PRUCHO2_OCC_ATTR_NUM,          prucho2_occup_attrTbl,     zcl_occupancySensing_register,          NULL                },
+    {ZCL_CLUSTER_MS_ILLUMINANCE_MEASUREMENT,MANUFACTURER_CODE_NONE, PRUCHO2_LUX_ATTR_NUM,           prucho2_lux_attrTbl,       zcl_illuminanceMeasure_register,        NULL                },
+#else
     {ZCL_CLUSTER_MS_TEMPERATURE_MEASUREMENT, MANUFACTURER_CODE_NONE, ZCL_TEMPERATURE_ATTR_NUM,       temperature_attrTbl,       zcl_temperature_measurement_register,   app_temperatureCb   },
     {ZCL_CLUSTER_MS_RELATIVE_HUMIDITY,       MANUFACTURER_CODE_NONE, ZCL_HUMIDITY_ATTR_NUM,          humidity_attrTbl,          zcl_humidity_measurement_register,      app_humidityCb      },
+#endif
 #ifdef ZCL_ON_OFF_SWITCH_CFG
     {ZCL_CLUSTER_GEN_ON_OFF_SWITCH_CONFIG,   MANUFACTURER_CODE_NONE, ZCL_ON_OFF_SWITCH_CFG_ATTR1_NUM, onoff_switch_cfg_attr1Tbl,  zcl_onOffSwitchCfg_register,            NULL              },
 #endif
