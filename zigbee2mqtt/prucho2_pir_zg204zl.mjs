@@ -1,0 +1,41 @@
+/*
+ * Prucho2 PIR ZG-204ZL - Z2M experimental external converter.
+ * Uses standard Zigbee clusters from the Slacky-DIY firmware.
+ * Not tested on physical hardware. Zigbee2MQTT 2.11+ requires:
+ * advanced: {enable_external_js: true}.
+ */
+import {occupancy, illuminance, battery} from 'zigbee-herdsman-converters/lib/modernExtend';
+import {presets as e, access as ea} from 'zigbee-herdsman-converters/lib/exposes';
+
+const occupancyTimeout = {
+    key: ['occupancy_timeout'],
+    convertSet: async (entity, key, value) => {
+        const seconds = Number(value);
+        if (!Number.isInteger(seconds) || seconds < 1 || seconds > 600) {
+            throw new Error('occupancy_timeout must be between 1 and 600 seconds');
+        }
+        await entity.write('msOccupancySensing', {pirOToUDelay: seconds});
+        return {state: {occupancy_timeout: seconds}};
+    },
+    convertGet: async (entity) => {
+        await entity.read('msOccupancySensing', ['pirOToUDelay']);
+    },
+};
+
+export default {
+    zigbeeModel: ['Prucho2-PIR-z'],
+    model: 'Prucho2-PIR-ZG204ZL',
+    vendor: 'Prucho2 / Slacky-DIY',
+    description: 'ZG-204ZL Telink PIR with optional populated lux components; one identical firmware for all boards',
+    extend: [
+        occupancy({reporting: true, reportingConfig: {min: 'MIN', max: '1_HOUR', change: 0}}),
+        illuminance({reporting: {min: '10_SECONDS', max: '1_HOUR', change: 10}}),
+        battery({voltage: true}),
+    ],
+    toZigbee: [occupancyTimeout],
+    exposes: [
+        e.numeric('occupancy_timeout', ea.ALL).withUnit('s')
+            .withValueMin(1).withValueMax(600).withValueStep(1)
+            .withDescription('Time from last PIR activity until unoccupied'),
+    ],
+};
