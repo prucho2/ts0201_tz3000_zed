@@ -94,3 +94,6 @@ No flashing until a **successful clean build**, explicit firmware metadata check
   - `0xF10A` UINT32 total app-task PD4 samples.
 - Read 0xF100, 0xF101, 0xF107, 0xF109 before/after PIR movement. If no rise/high samples, investigate pin signal and sleep; if rises, investigate occupancy ZCL/reporting. If manual read of these attributes is rejected by converter/Dev console, fix the *diagnostic transport* before interpreting values.
 - The test build is *diagnostic, not a confirmed fix*. Do not flash any MAIN device or alter the unified PCB profile.
+
+### TEST Zigbee2MQTT custom attribute reader
+The Z2M Windfront Dev console attribute dropdown only shows built-in attributes; custom 0xF100..0xF10A cannot be selected. This was missed during initial v0.1.42 planning. The external converter was extended with explicit `entity.read('msOccupancySensing', [numeric IDs])` requests and `fromZigbee` response decoding. It adds read-only diagnostic exposes (`pir_gpio`, `pir_rising_edges`, etc.) with refresh/get functionality. On HA TEST, replace the existing `external_converters/prucho2_pir_zg204zl.mjs` with this version and restart only Zigbee2MQTT Edge. This converter extension has been committed but has NOT yet been tested with Z2M and physical diagnostic firmware; any read error must be observed before relying on the values.
