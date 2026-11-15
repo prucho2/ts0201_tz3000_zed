@@ -1,6 +1,6 @@
 # Prucho2 PIR (ZG-204ZL) — Slacky-DIY firmware development
 
-**Status:** FIRST PROTOTYPE SOURCE COMMITTED, compile status not yet independently confirmed, not hardware-validated — DO NOT FLASH.  
+**Status:** **v0.1.41 SUCCESSFULLY BUILT**, firmware metadata validated in GitHub Actions, but NOT tested on real hardware — **DO NOT FLASH ON MAIN DEVICES**.  
 **Target:** Telink TLSR8253, hardware designation **ZG-204ZL**, **one identical PCB and one firmware image**. Some units have the lux sensor components soldered; others have the same component footprints unpopulated.  
 **Working branch:** `dev/prucho2-pir-zg204zl` of `prucho2/ts0201_tz3000_zed`. Production `main` and all existing TH board builds remain unchanged.
 
@@ -48,8 +48,9 @@ PVVX `sensor_pir.c`: `occupancyTimerCb()` keeps occupancy high and returns 0 if 
 - **B — Board profile:** add conditional ZG-204ZL GPIO header, power/ADC and battery profile; keep original TH builds untouched.
 - **C — New event module:** first implementation committed: Slacky-style PIR state machine, GPIO wake, occupancy ZCL reports, timer checks and periodic synchronization. Not yet validated on hardware.
 - **D — Clusters / reporting:** occupancy 0x0406 and illuminance 0x0400 added as initial code. Lux sampled every 10 seconds through SDK ADC, configurable ZCL occupancy delay; further Z2M validation and calibration are pending.
-- **E — Build:** added .github/workflows/build-prucho2-pir.yml for experimental board **0x2D**, file version **0x01413001**, image type **0x022D**, v0.1.41. Workflow is not a declaration of a successful compile. Never publish as known-good before validating build logs.
-- **F — Hardware:** backup full raw flash, program the **disassembled third test PIR only**, join TEST coordinator, test PIR GPIO and 1s/3s/35s occupancy on the disassembled TEST unit, Z2M reports, power draw and OTA. No MAIN restarts; do not modify MAIN PIRs.
+- **E — Build:** added .github/workflows/build-prucho2-pir.yml for experimental board **0x2D**, file version **0x01413001**, image type **0x022D**, v0.1.41. Successful TC32 compilation confirmed on 2026-11-15 by [run 43752694975](https://github.com/prucho2/ts0201_tz3000_zed/actions/runs/43752694975), with firmware image type 0x022D and version 0x01413001. Archived only as an **UNTESTED workflow artifact**, not in the known-good firmware directory.
+- **F — Zigbee2MQTT:** initial converter [zigbee2mqtt/prucho2_pir_zg204zl.mjs](../zigbee2mqtt/prucho2_pir_zg204zl.mjs) using occupancy, illuminance and battery modern extends plus 1–600s hold setting. Not deployed or hardware-tested.
+- **G — Hardware:** backup full raw flash, program the **disassembled third test PIR only**, join TEST coordinator, test PIR GPIO and 1s/3s/35s occupancy on the disassembled TEST unit, Z2M reports, power draw and OTA. No MAIN restarts; do not modify MAIN PIRs.
 
 ## Slacky code references
 
@@ -62,3 +63,12 @@ PVVX `sensor_pir.c`: `occupancyTimerCb()` keeps occupancy high and returns 0 if 
 ## Acceptance gate for a usable BIN
 
 No flashing until a **successful clean build**, explicit firmware metadata check (version, Zigbee manufacturer, OTA image type, dateCode), confirmed GPIO polarity/sleep behavior, and test-device-only rollout plan. A profile or stub alone is **not a usable firmware image**.
+
+## First confirmed successful build (2026-11-15)
+
+- [GitHub Actions run #43752694975](https://github.com/prucho2/ts0201_tz3000_zed/actions/runs/43752694975): **success**, independent build only.
+- Artifact: `prucho2-pir-zg204zl-v0.1.41-UNTESTED` (ZIP with BIN and OTA, temporary Actions storage).
+- OTA file: `6565-022d-01413001-prucho2_zg204zl_pir.zigbee`.
+- Version: `v0.1.41`, manufacturer `0x6565`, image type `0x022D`, image file version `0x01413001`.
+- Compiler/linker validated, binary produced. `text 151460 / data 816 / bss 13268` bytes shown by linker size tool.
+- **Unverified:** live motion events, sleep/wakeup energy and edge handling, lux ADC physical accuracy, end-to-end Zigbee2MQTT reports, converter behavior, OTA update path. The first hardware trial is permitted only on isolated TEST device after backup and review.
