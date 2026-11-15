@@ -354,6 +354,18 @@ const zclAttrInfo_t prucho2_occup_attrTbl[] = {
     { ZCL_ATTRID_OCCUPANCY,                 ZCL_BITMAP8, RR,  &prucho2_occupancy },
     { ZCL_ATTRID_OCCUPANCY_SENSOR_TYPE,     ZCL_ENUM8,   R,   &prucho2_occupancy_type },
     { ZCL_ATTRID_PIR_OCCU2UNOCCU_DELAY,     ZCL_UINT16,  RW, (uint8_t *)&prucho2_occupancy_hold },
+    /* Read-only 0xF100..0xF10A diagnostics, no manufacturer-specific header. */
+    { 0xF100, ZCL_UINT8,  R, (uint8_t *)&prucho2_diag_raw_gpio },
+    { 0xF101, ZCL_UINT32, R, (uint8_t *)&prucho2_diag_rising_edges },
+    { 0xF102, ZCL_UINT32, R, (uint8_t *)&prucho2_diag_falling_edges },
+    { 0xF103, ZCL_UINT32, R, (uint8_t *)&prucho2_diag_reports_requested },
+    { 0xF104, ZCL_UINT32, R, (uint8_t *)&prucho2_diag_reports_enqueued },
+    { 0xF105, ZCL_UINT32, R, (uint8_t *)&prucho2_diag_reports_retries },
+    { 0xF106, ZCL_UINT32, R, (uint8_t *)&prucho2_diag_timer_checks },
+    { 0xF107, ZCL_UINT32, R, (uint8_t *)&prucho2_diag_gpio_high_samples },
+    { 0xF108, ZCL_UINT32, R, (uint8_t *)&prucho2_diag_gpio_low_samples },
+    { 0xF109, ZCL_UINT32, R, (uint8_t *)&prucho2_diag_sleep_returns },
+    { 0xF10A, ZCL_UINT32, R, (uint8_t *)&prucho2_diag_poll_samples },
     { ZCL_ATTRID_GLOBAL_CLUSTER_REVISION,   ZCL_UINT16,  R,  (uint8_t *)&zcl_attr_global_clusterRevision },
 };
 #define PRUCHO2_OCC_ATTR_NUM (sizeof(prucho2_occup_attrTbl) / sizeof(zclAttrInfo_t))
