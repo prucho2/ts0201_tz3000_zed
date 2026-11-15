@@ -22,7 +22,7 @@ static uint32_t measured_lux = 0;
 static ev_timer_event_t *luxTimer = NULL;
 
 /* Zigbee illuminance cluster uses measuredValue = 10000*log10(lx)+1.
- * 64-bit intermediates are important: fixed-point squaring overflows u32.
+ * 32-bit Q15 intermediate squares fit because the linear ADC model is <=1000 lx.
  */
 static uint16_t zcl_illuminance(uint32_t lux) {
     if (lux == 0) return 0;
@@ -33,15 +33,16 @@ static uint16_t zcl_illuminance(uint32_t lux) {
         normalized >>= 1;
         ++n;
     }
-    uint64_t v = ((uint64_t)lux << 15) >> n;
+    /* lux <= 1000 in the current ADC model; Q15 fits in uint32. */
+    uint32_t v = (lux << 15) >> n;
     for (uint8_t i = 0; i < 10; ++i) {
         v = (v * v) >> 15;
-        if (v >= ((uint64_t)2 << 15)) {
+        if (v >= (2UL << 15)) {
             v >>= 1;
             fraction |= (uint32_t)1U << (9-i);
         }
     }
-    uint64_t z = (((uint64_t)n * 1024UL + fraction) * 30103UL) / 10240UL + 1UL;
+    uint32_t z = ((n * 1024UL + fraction) * 30103UL) / 10240UL + 1UL;
     return z > 0xFFFEUL ? 0xFFFE : (uint16_t)z;
 }
 
@@ -61,10 +62,13 @@ static uint32_t read_lux_linear(void) {
 
     if (!vbat || !sense) return 0;
     if (sense > vbat) sense = vbat;
-    uint32_t ratio = (uint32_t)(((uint64_t)sense * 65535UL) / vbat);
-    uint32_t ratio2 = (uint32_t)(((uint64_t)ratio * ratio) >> 16);
-    uint32_t ratio4 = (uint32_t)(((uint64_t)ratio2 * ratio2) >> 16);
-    return (uint32_t)(((uint64_t)ratio4 * 1000UL) >> 16);
+    /* Q12 fits in 32-bit for every intermediate including the fourth power.
+     * The original Q16 calculation overflowed when multiplied by 1000.
+     */
+    uint32_t ratio_q12 = (sense * 4096UL) / vbat;
+    uint32_t ratio2_q12 = (ratio_q12 * ratio_q12) >> 12;
+    uint32_t ratio4_q12 = (ratio2_q12 * ratio2_q12) >> 12;
+    return (ratio4_q12 * 1000UL) >> 12;
 }
 
 static int32_t lux_periodCb(void *arg) {
