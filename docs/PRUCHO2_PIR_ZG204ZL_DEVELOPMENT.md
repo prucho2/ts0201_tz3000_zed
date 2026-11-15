@@ -23,7 +23,7 @@
 | Battery measurement | **PC5** | ADC C5P profile; validate on actual board |
 | CPU | **TLSR8253** | Confirm memory/flash config and toolchain compatibility before compiling |
 
-**Single hardware design, single firmware build:** the PCB, MCU, pin mapping and Zigbee configuration are identical regardless of whether the illuminance components are fitted. The same firmware must work unchanged on both. As already observed in the current PVVX devices, units without populated illuminance parts report `0 lux`; do not introduce separate builds, model IDs, board profiles or configuration switches to distinguish them. Verify that the readout of an unpopulated lux circuit is safe, bounded and does not delay PIR operation.
+**Single hardware design, single firmware build:** the PCB, MCU, pin mapping and Zigbee configuration are identical regardless of whether the illuminance components are fitted. The same firmware must work unchanged on both. As already observed in the current PVVX devices, units without populated illuminance parts report `0 lux`; do not introduce separate builds, model IDs, board profiles or configuration switches to distinguish them. This is established behavior of the existing factory/PVVX firmware: the same firmware runs on both and units with no lux components simply report `0 lux`. No hardware-population checks or separate lux tests are needed.
 
 ## Required ZCL behavior
 
@@ -49,7 +49,7 @@ PVVX `sensor_pir.c`: `occupancyTimerCb()` keeps occupancy high and returns 0 if 
 - **C — New event module:** Slacky-style PIR state machine and wake-up integration, retain original Slacky Zigbee networking.
 - **D — Clusters / reporting:** occupancy 0x0406 and illuminance 0x0400, config/diagnostic attributes, Z2M converter when necessary.
 - **E — Build:** separate GitHub Actions artifact with unique **development** version and OTA image type; do not archive it among known-good TH firmware.
-- **F — Hardware:** backup full raw flash, program the **disassembled third test PIR only**, join TEST coordinator, test the **same BIN** on both lux-populated and unpopulated ZG-204ZL boards, GPIO and 1s/3s/35s occupancy, Z2M reports, power draw and OTA. No MAIN restarts; do not modify MAIN PIRs.
+- **F — Hardware:** backup full raw flash, program the **disassembled third test PIR only**, join TEST coordinator, test PIR GPIO and 1s/3s/35s occupancy on the disassembled TEST unit, Z2M reports, power draw and OTA. No MAIN restarts; do not modify MAIN PIRs.
 
 ## Slacky code references
 
