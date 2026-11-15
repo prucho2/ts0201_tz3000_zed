@@ -11,4 +11,6 @@ void prucho2_pir_init(void);
 void prucho2_pir_task(void);
 void prucho2_pir_prepare_sleep(void);
 void prucho2_pir_request_sync(void);
+void prucho2_lux_init(void);
+void prucho2_lux_task(void);
 #endif
