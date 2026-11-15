@@ -52,9 +52,12 @@ const pirDiagnostics = {
 };
 const diagRead = {
     key: Object.keys(diagAttributes),
-    convertGet: async (entity) => {
-        // Read all counters in one request; Zigbee return publishes a readResponse.
-        await entity.read('msOccupancySensing', Object.values(diagAttributes));
+    convertGet: async (entity, key) => {
+        // Ask for exactly one attribute per request. Reading all eleven at once
+        // on a sleeping end-device previously caused 10-second ZCL timeout.
+        const id = diagAttributes[key];
+        if (id === undefined) throw new Error(`Unsupported PIR diagnostic key: ${key}`);
+        await entity.read('msOccupancySensing', [id]);
     },
 };
 
@@ -66,7 +69,7 @@ export default {
     description: 'ZG-204ZL Telink PIR with optional populated lux components; one identical firmware for all boards',
     extend: [
         occupancy({reporting: true, reportingConfig: {min: 'MIN', max: '1_HOUR', change: 0}}),
-        illuminance({reporting: {min: '10_SECONDS', max: '1_HOUR', change: 10}}),
+        illuminance({reporting: false}),
         battery({voltage: true}),
     ],
     fromZigbee: [pirDiagnostics],
