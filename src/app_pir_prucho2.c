@@ -130,6 +130,12 @@ void prucho2_pir_request_sync(void) {
 }
 
 void prucho2_pir_init(void) {
+    /* Runtime pin setup: do not rely only on platform gpio_default macros.
+     * Match PVVX board wiring: PD4 as GPIO input with no output drive.
+     */
+    drv_gpio_func_set(PRUCHO2_PIR_GPIO);
+    drv_gpio_output_en(PRUCHO2_PIR_GPIO, false);
+    drv_gpio_input_en(PRUCHO2_PIR_GPIO, true);
     raw_high = read_pir();
     prucho2_diag_raw_gpio = raw_high ? 1 : 0;
     prucho2_occupancy = raw_high ? 1 : 0;
@@ -180,7 +186,9 @@ void prucho2_pir_task(void) {
 }
 
 void prucho2_pir_prepare_sleep(void) {
-    /* Restore Slacky's shared wakeup configuration for button and PD4. */
+    /* Re-arm opposite-level wake after each GPIO sample, as PVVX does.
+     * Keep the standard Slacky platform helper to configure PA1 + PD4.
+     */
     extern drv_pm_pinCfg_t g_switchPmCfg[];
     drv_pm_wakeupPinLevelChange(g_switchPmCfg, 2);
 }
