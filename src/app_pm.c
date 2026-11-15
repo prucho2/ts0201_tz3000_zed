@@ -63,6 +63,9 @@ void app_pm_lowPowerEnter(void) {
     }
 
     drv_restore_irq(r);
+#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+    prucho2_pir_note_wakeup();
+#endif
 #endif
 }
 
