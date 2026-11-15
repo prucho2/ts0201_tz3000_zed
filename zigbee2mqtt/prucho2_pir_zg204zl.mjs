@@ -58,6 +58,41 @@ const diagRead = {
     },
 };
 
+
+// v0.1.42 TEST-only diagnostic read trigger.
+// Sending {"pir_diagnostics":1} to pir-prucho/set invokes ZCL READ only,
+// never writes any Zigbee attribute or changes occupancy.
+// Values are included in the returned Zigbee2MQTT state.
+const pirDiagnosticNames = {
+    0xF100: 'pir_gpio_level',
+    0xF101: 'pir_rising_edges',
+    0xF102: 'pir_falling_edges',
+    0xF103: 'pir_reports_requested',
+    0xF104: 'pir_reports_enqueued',
+    0xF105: 'pir_report_retries',
+    0xF106: 'pir_timer_checks',
+    0xF107: 'pir_high_samples',
+    0xF108: 'pir_low_samples',
+    0xF109: 'pir_sleep_returns',
+    0xF10A: 'pir_poll_samples',
+};
+const pirDiagnostics = {
+    key: ['pir_diagnostics'],
+    convertSet: async (entity, key, value) => {
+        if (Number(value) !== 1) throw new Error('pir_diagnostics requires value 1');
+        const ids = Object.keys(pirDiagnosticNames).map(Number);
+        const response = await entity.read('msOccupancySensing', ids);
+        const state = {};
+        for (const id of ids) {
+            const k = pirDiagnosticNames[id];
+            const value = response[id] ?? response[String(id)] ?? response[`0x${id.toString(16)}`];
+            if (value !== undefined) state[k] = value;
+        }
+        state.pir_diagnostics = 0;
+        return {state};
+    },
+};
+
 export default {
     zigbeeModel: ['Prucho2-PIR-z'],
     model: 'Prucho2-PIR-ZG204ZL',
