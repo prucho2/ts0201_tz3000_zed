@@ -1,0 +1,69 @@
+name: Build Prucho2 ZG-204ZL PIR experimental
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev/prucho2-pir-zg204zl
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install toolchain dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make python3 curl bzip2 libncurses5
+      - name: Install Telink TC32 compiler
+        run: |
+          sudo mkdir -p /opt/tc32
+          curl -fL --retry 3 "https://raw.githubusercontent.com/prucho2/ZigbeeTLc-PIR/master/tools/linux/tc32_gcc_v2.0.tar.bz2" -o /tmp/tc32.tar.bz2
+          sudo tar -xjf /tmp/tc32.tar.bz2 -C /opt/tc32
+          COMPILER=$(find /opt/tc32 -type f -name tc32-elf-gcc -print -quit)
+          test -n "$COMPILER"
+          if [ "$(dirname "$COMPILER")" != "/opt/tc32/bin" ]; then
+            sudo ln -s "$(dirname "$COMPILER")" /opt/tc32/bin
+          fi
+          /opt/tc32/bin/tc32-elf-gcc --version
+      - name: Create development date code
+        run: |
+          python3 - <<'PY'
+          from datetime import datetime, timezone
+          from pathlib import Path
+          d = datetime.now(timezone.utc).strftime('%Y%m%d')
+          Path('src/include/sonoff_build_date.h').write_text(
+              '#ifndef SONOFF_BUILD_DATE_H\n#define SONOFF_BUILD_DATE_H\n'
+              + '#define SONOFF_BUILD_DATE {8,' + ','.join(repr(c) for c in d)
+              + '}\n#endif\n')
+          PY
+      - name: Build independent ZG-204ZL PIR target
+        run: |
+          make PROJECT_NAME=prucho2_zg204zl_pir PROJECT_DEF=-DBOARD=BOARD_PRUCHO2_PIR_ZG204ZL DEBUG=-DUART_PRINTF_MODE=OFF
+      - name: Validate binary metadata
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('bin/prucho2_zg204zl_pir_last_version.bin')
+          b=p.read_bytes()
+          assert len(b)>10000, len(b)
+          v=int.from_bytes(b[2:6],'little')
+          m=int.from_bytes(b[18:20],'little')
+          image=int.from_bytes(b[20:22],'little')
+          print(f'BIN size={len(b)} version=0x{v:08x} manufacturer=0x{m:04x} image=0x{image:04x}')
+          assert v==0x01413001
+          assert m==0x6565
+          assert image==0x022d
+          PY
+      - name: Archive test build only
+        uses: actions/upload-artifact@v4
+        with:
+          name: prucho2-pir-zg204zl-v0.1.41-UNTESTED
+          path: |
+            bin/prucho2_zg204zl_pir*.bin
+            bin/*prucho2_zg204zl_pir*.zigbee
+          if-no-files-found: error
+          retention-days: 14
