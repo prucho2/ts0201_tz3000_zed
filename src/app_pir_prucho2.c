@@ -10,9 +10,13 @@
  */
 #define PRUCHO2_PIR_RECHECK_MS 100
 #define PRUCHO2_PIR_SYNC_MS 300000
+#define PRUCHO2_PIR_DIAG_MIN_MS 5000
 
 static bool raw_high = false;
 static bool pending = false;
+static bool diag_pending = true;
+static bool diag_sent_once = false;
+static uint32_t diag_sent_at = 0;
 static uint32_t last_low = 0;
 static ev_timer_event_t *checkEvt = NULL;
 static ev_timer_event_t *syncEvt = NULL;
@@ -35,7 +39,8 @@ void prucho2_pir_note_wakeup(void) {
 }
 
 static bool read_pir(void) {
-    return drv_gpio_read(PRUCHO2_PIR_GPIO) == PRUCHO2_PIR_ACTIVE_LEVEL;
+    /* Direct Telink GPIO read, matching working PVVX sensor_pir.c. */
+    return gpio_read(PRUCHO2_PIR_GPIO) == PRUCHO2_PIR_ACTIVE_LEVEL;
 }
 
 static void request_occupancy(uint8_t value) {
@@ -62,6 +67,42 @@ static void send_occupancy(void) {
         ++prucho2_diag_reports_enqueued;
     } else {
         ++prucho2_diag_reports_retries;
+    }
+}
+
+/* One ZCL Report Attributes command holding the full diagnostic snapshot.
+ * Avoids 11 ZCL reads that timed out on a sleeping battery device.
+ * Only generated after a GPIO transition / initial join and throttled to 5 s.
+ */
+static void send_diag_snapshot(void) {
+    if (!diag_pending || !zb_isDeviceJoinedNwk()) return;
+    if (diag_sent_once && !clock_time_exceed(diag_sent_at, PRUCHO2_PIR_DIAG_MIN_MS * 1000UL)) return;
+    struct {
+        u8 numAttr;
+        zclReport_t attr[11];
+    } report;
+    const u16 ids[11] = {0xF100, 0xF101, 0xF102, 0xF103, 0xF104,
+                         0xF105, 0xF106, 0xF107, 0xF108, 0xF109, 0xF10A};
+    report.numAttr = 0;
+    for (u8 i = 0; i < 11; ++i) {
+        zclAttrInfo_t *attr = zcl_findAttribute(APP_ENDPOINT1, ZCL_CLUSTER_MS_OCCUPANCY_SENSING, ids[i]);
+        if (!attr || !attr->data) return;
+        report.attr[i].attrID = attr->id;
+        report.attr[i].dataType = attr->type;
+        report.attr[i].attrData = attr->data;
+        ++report.numAttr;
+    }
+    epInfo_t dst;
+    TL_SETSTRUCTCONTENT(dst, 0);
+    dst.profileId = HA_PROFILE_ID;
+    dst.dstAddrMode = APS_DSTADDR_EP_NOTPRESETNT;
+    status_t result = zcl_sendReportAttrsCmd(APP_ENDPOINT1, &dst, TRUE,
+            ZCL_FRAME_SERVER_CLIENT_DIR, ZCL_CLUSTER_MS_OCCUPANCY_SENSING,
+            (zclReportCmd_t *)&report);
+    if (result == ZCL_STA_SUCCESS) {
+        diag_pending = false;
+        diag_sent_once = true;
+        diag_sent_at = clock_time();
     }
 }
 
@@ -93,6 +134,8 @@ void prucho2_pir_init(void) {
     prucho2_diag_raw_gpio = raw_high ? 1 : 0;
     prucho2_occupancy = raw_high ? 1 : 0;
     pending = true;
+    diag_pending = true;
+    diag_sent_once = false;
     last_low = clock_time();
     if (raw_high) schedule_check(PRUCHO2_PIR_RECHECK_MS);
     if (!syncEvt) syncEvt = TL_ZB_TIMER_SCHEDULE(syncCb, NULL, PRUCHO2_PIR_SYNC_MS);
@@ -105,6 +148,7 @@ void prucho2_pir_task(void) {
     if (current) ++prucho2_diag_gpio_high_samples;
     else ++prucho2_diag_gpio_low_samples;
     if (current != raw_high) {
+        diag_pending = true;
         raw_high = current;
         if (current) {
             ++prucho2_diag_rising_edges;
@@ -129,14 +173,18 @@ void prucho2_pir_task(void) {
         }
     }
     send_occupancy();
+    send_diag_snapshot();
     if (pending) schedule_check(250);
+    /* Coalesce motion edges into one snapshot per five seconds. */
+    if (diag_pending && diag_sent_once) schedule_check(PRUCHO2_PIR_DIAG_MIN_MS);
 }
 
 void prucho2_pir_prepare_sleep(void) {
-    /* Select wake level opposite to the present PIR voltage; follows
-     * Slacky TS0203 GPIO-level-change strategy, not the PVVX event loop. */
+    /* Keep Slacky handling of the pairing button but use the proven PVVX
+     * direct wake setup on PD4, opposite to its current electrical level. */
     extern drv_pm_pinCfg_t g_switchPmCfg[];
-    drv_pm_wakeupPinLevelChange(g_switchPmCfg, 2);
+    drv_pm_wakeupPinLevelChange(g_switchPmCfg, 1);
+    cpu_set_gpio_wakeup(PRUCHO2_PIR_GPIO, !gpio_read(PRUCHO2_PIR_GPIO), 1);
 }
 
 #endif
