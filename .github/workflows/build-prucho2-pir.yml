@@ -59,14 +59,14 @@ jobs:
           m=int.from_bytes(b[18:20],'little')
           image=int.from_bytes(b[20:22],'little')
           print(f'BIN size={len(b)} version=0x{v:08x} manufacturer=0x{m:04x} image=0x{image:04x}')
-          assert v==0x01413001
+          assert v==0x01423001
           assert m==0x6565
           assert image==0x022d
           PY
       - name: Archive test build only
         uses: actions/upload-artifact@v4
         with:
-          name: prucho2-pir-zg204zl-v0.1.41-UNTESTED
+          name: prucho2-pir-zg204zl-v0.1.42-UNTESTED
           path: |
             bin/prucho2_zg204zl_pir*.bin
             bin/*prucho2_zg204zl_pir*.zigbee
