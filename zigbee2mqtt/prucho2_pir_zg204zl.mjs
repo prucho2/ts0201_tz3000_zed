@@ -22,6 +22,42 @@ const occupancyTimeout = {
     },
 };
 
+
+// v0.1.42: explicit numeric reads from Zigbee attributes absent from the Z2M
+// Dev console attribute-name dropdown. Not manufacturer-specific ZCL frames.
+const diagAttributes = {
+    pir_gpio: 0xF100,
+    pir_rising_edges: 0xF101,
+    pir_falling_edges: 0xF102,
+    pir_reports_requested: 0xF103,
+    pir_reports_enqueued: 0xF104,
+    pir_reports_retries: 0xF105,
+    pir_timer_checks: 0xF106,
+    pir_high_samples: 0xF107,
+    pir_low_samples: 0xF108,
+    pir_sleep_returns: 0xF109,
+    pir_poll_samples: 0xF10A,
+};
+const pirDiagnostics = {
+    cluster: 'msOccupancySensing',
+    type: ['readResponse', 'attributeReport'],
+    convert: (model, msg) => {
+        const result = {};
+        for (const [name, id] of Object.entries(diagAttributes)) {
+            const value = msg.data[id] ?? msg.data[String(id)] ?? msg.data['0x' + id.toString(16)];
+            if (typeof value === 'number') result[name] = value;
+        }
+        return result;
+    },
+};
+const diagRead = {
+    key: Object.keys(diagAttributes),
+    convertGet: async (entity) => {
+        // Read all counters in one request; Zigbee return publishes a readResponse.
+        await entity.read('msOccupancySensing', Object.values(diagAttributes));
+    },
+};
+
 export default {
     zigbeeModel: ['Prucho2-PIR-z'],
     model: 'Prucho2-PIR-ZG204ZL',
@@ -32,8 +68,10 @@ export default {
         illuminance({reporting: {min: '10_SECONDS', max: '1_HOUR', change: 10}}),
         battery({voltage: true}),
     ],
-    toZigbee: [occupancyTimeout],
+    fromZigbee: [pirDiagnostics],
+    toZigbee: [occupancyTimeout, diagRead],
     exposes: [
+        ...Object.keys(diagAttributes).map((name) => e.numeric(name, ea.STATE_GET).withDescription('Prucho2 PIR diagnostic ZCL counter, click refresh to read; v0.1.42')),
         e.numeric('occupancy_timeout', ea.ALL).withUnit('s')
             .withValueMin(1).withValueMax(600).withValueStep(1)
             .withDescription('Time from last PIR activity until unoccupied'),
