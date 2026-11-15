@@ -17,16 +17,22 @@ static uint32_t last_low = 0;
 static ev_timer_event_t *checkEvt = NULL;
 static ev_timer_event_t *syncEvt = NULL;
 
-typedef struct {
-    uint32_t rising_edges;
-    uint32_t falling_edges;
-    uint32_t reports_requested;
-    uint32_t report_enqueued;
-    uint32_t report_retries;
-    uint32_t timer_checks;
-} prucho2_pir_diag_t;
+/* Diagnostic ZCL attributes, read-only; reset after a cold boot. */
+uint8_t prucho2_diag_raw_gpio = 0;
+uint32_t prucho2_diag_rising_edges = 0;
+uint32_t prucho2_diag_falling_edges = 0;
+uint32_t prucho2_diag_reports_requested = 0;
+uint32_t prucho2_diag_reports_enqueued = 0;
+uint32_t prucho2_diag_reports_retries = 0;
+uint32_t prucho2_diag_timer_checks = 0;
+uint32_t prucho2_diag_gpio_high_samples = 0;
+uint32_t prucho2_diag_gpio_low_samples = 0;
+uint32_t prucho2_diag_sleep_returns = 0;
+uint32_t prucho2_diag_poll_samples = 0;
 
-static prucho2_pir_diag_t diag;
+void prucho2_pir_note_wakeup(void) {
+    ++prucho2_diag_sleep_returns;
+}
 
 static bool read_pir(void) {
     return drv_gpio_read(PRUCHO2_PIR_GPIO) == PRUCHO2_PIR_ACTIVE_LEVEL;
@@ -36,7 +42,7 @@ static void request_occupancy(uint8_t value) {
     if (prucho2_occupancy != value) {
         prucho2_occupancy = value;
         pending = true;
-        ++diag.reports_requested;
+        ++prucho2_diag_reports_requested;
     }
 }
 
@@ -53,15 +59,15 @@ static void send_occupancy(void) {
             ZCL_DATA_TYPE_BITMAP8, &prucho2_occupancy);
     if (st == ZCL_STA_SUCCESS) {
         pending = false;
-        ++diag.report_enqueued;
+        ++prucho2_diag_reports_enqueued;
     } else {
-        ++diag.report_retries;
+        ++prucho2_diag_reports_retries;
     }
 }
 
 static int32_t checkCb(void *arg) {
     checkEvt = NULL;
-    ++diag.timer_checks;
+    ++prucho2_diag_timer_checks;
     prucho2_pir_task();
     return -1;
 }
@@ -84,6 +90,7 @@ void prucho2_pir_request_sync(void) {
 
 void prucho2_pir_init(void) {
     raw_high = read_pir();
+    prucho2_diag_raw_gpio = raw_high ? 1 : 0;
     prucho2_occupancy = raw_high ? 1 : 0;
     pending = true;
     last_low = clock_time();
@@ -93,13 +100,17 @@ void prucho2_pir_init(void) {
 
 void prucho2_pir_task(void) {
     bool current = read_pir();
+    prucho2_diag_raw_gpio = current ? 1 : 0;
+    ++prucho2_diag_poll_samples;
+    if (current) ++prucho2_diag_gpio_high_samples;
+    else ++prucho2_diag_gpio_low_samples;
     if (current != raw_high) {
         raw_high = current;
         if (current) {
-            ++diag.rising_edges;
+            ++prucho2_diag_rising_edges;
             request_occupancy(1);
         } else {
-            ++diag.falling_edges;
+            ++prucho2_diag_falling_edges;
             last_low = clock_time();
         }
     }
