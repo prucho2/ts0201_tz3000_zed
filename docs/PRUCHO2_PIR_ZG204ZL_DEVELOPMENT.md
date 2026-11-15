@@ -1,7 +1,7 @@
 # Prucho2 PIR (ZG-204ZL) — Slacky-DIY firmware development
 
 **Status:** DEVELOPMENT, not compiled, not validated on hardware, DO NOT FLASH.  
-**Target:** Telink TLSR8253, hardware designation **ZG-204ZL**, board with/without physical illuminance parts.  
+**Target:** Telink TLSR8253, hardware designation **ZG-204ZL**, **one identical PCB and one firmware image**. Some units have the lux sensor components soldered; others have the same component footprints unpopulated.  
 **Working branch:** `dev/prucho2-pir-zg204zl` of `prucho2/ts0201_tz3000_zed`. Production `main` and all existing TH board builds remain unchanged.
 
 ## Key decision: Slacky firmware, NOT a PVVX derivative
@@ -23,12 +23,12 @@
 | Battery measurement | **PC5** | ADC C5P profile; validate on actual board |
 | CPU | **TLSR8253** | Confirm memory/flash config and toolchain compatibility before compiling |
 
-On the board variant without installed light components, disable or detect illuminance safely. Do not publish fake `0 lux` without describing missing hardware and never let sensor ADC block PIR reporting.
+**Single hardware design, single firmware build:** the PCB, MCU, pin mapping and Zigbee configuration are identical regardless of whether the illuminance components are fitted. The same firmware must work unchanged on both. As already observed in the current PVVX devices, units without populated illuminance parts report `0 lux`; do not introduce separate builds, model IDs, board profiles or configuration switches to distinguish them. Verify that the readout of an unpopulated lux circuit is safe, bounded and does not delay PIR operation.
 
 ## Required ZCL behavior
 
 1. **Occupancy Sensing (0x0406):** report `occupancy=1` promptly after validated GPIO motion; report `occupancy=0` once no further PIR activity and occupancy hold expires.
-2. **Illuminance Measurement (0x0400):** Slacky reporting, configurable sample interval and reportable change. Optional on no-lux hardware.
+2. **Illuminance Measurement (0x0400):** Slacky reporting, configurable sample interval and reportable change; the same image exposes this on both hardware populations and non-populated sensors report `0 lux`, as in the existing PVVX firmware.
 3. **Power Configuration (0x0001)** and **Basic (0x0000)** from Slacky.
 4. Configurable occupancy hold; start with **3 seconds** on TEST, evaluate 1-second performance separately.
 5. Distinguish raw PIR GPIO state, derived occupancy state, outstanding ZCL report state and transmission success.
@@ -49,7 +49,7 @@ PVVX `sensor_pir.c`: `occupancyTimerCb()` keeps occupancy high and returns 0 if 
 - **C — New event module:** Slacky-style PIR state machine and wake-up integration, retain original Slacky Zigbee networking.
 - **D — Clusters / reporting:** occupancy 0x0406 and illuminance 0x0400, config/diagnostic attributes, Z2M converter when necessary.
 - **E — Build:** separate GitHub Actions artifact with unique **development** version and OTA image type; do not archive it among known-good TH firmware.
-- **F — Hardware:** backup full raw flash, program the **disassembled third test PIR only**, join TEST coordinator, test GPIO and 1s/3s/35s occupancy, lux-with/without hardware, Z2M reports, power draw and OTA. No MAIN restarts; do not modify MAIN PIRs.
+- **F — Hardware:** backup full raw flash, program the **disassembled third test PIR only**, join TEST coordinator, test the **same BIN** on both lux-populated and unpopulated ZG-204ZL boards, GPIO and 1s/3s/35s occupancy, Z2M reports, power draw and OTA. No MAIN restarts; do not modify MAIN PIRs.
 
 ## Slacky code references
 
