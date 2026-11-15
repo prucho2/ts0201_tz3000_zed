@@ -53,8 +53,13 @@ const zdo_appIndCb_t appCbLst = {
  */
 uint16_t bdb_findBindClusterList[] = {
     ZCL_CLUSTER_GEN_ON_OFF,
+#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+    ZCL_CLUSTER_MS_OCCUPANCY_SENSING,
+    ZCL_CLUSTER_MS_ILLUMINANCE_MEASUREMENT,
+#else
     ZCL_CLUSTER_MS_TEMPERATURE_MEASUREMENT,
     ZCL_CLUSTER_MS_RELATIVE_HUMIDITY,
+#endif
     ZCL_CLUSTER_GEN_POWER_CFG
 };
 
@@ -94,6 +99,12 @@ drv_pm_pinCfg_t g_switchPmCfg[] = {
         BUTTON1,
         PM_WAKEUP_LEVEL_LOW
     },
+#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+    {
+        PRUCHO2_PIR_GPIO,
+        PM_WAKEUP_LEVEL_HIGH
+    },
+#endif
 };
 #endif
 
@@ -177,7 +188,11 @@ void user_app_init(void)
     app_i2c_init();
 #endif
 
+#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+    prucho2_pir_init();
+#else
     app_sensor_init();
+#endif
 #if (BOARD == BOARD_GXHTV4_PC2PC3)
     /* Obtain valid ZCL values before the first interview / report.
      * Leave unknown sentinel intact if the physical sensor is unavailable. */
@@ -196,7 +211,9 @@ void user_app_init(void)
 void app_task(void) {
 
     button_handler();
-
+#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+    prucho2_pir_task();
+#else
     if (zb_isDeviceJoinedNwk()) {
         if (app_timer_exceed(g_appCtx.read_sensor_time, g_appCtx.read_sensor_period95p)) {
             g_appCtx.read_sensor_time = app_timeout_get();
@@ -208,15 +225,24 @@ void app_task(void) {
         }
     }
 
+ #endif
     if(bdb_isIdle()) {
         report_handler();
 #if PM_ENABLE
         button_handler();
         if(!button_idle()) {
 #if DEBUG_PM_EN
+#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+            app_pm_lowPowerEnter();
+#else
+            app_pm_lowPowerEnter();
+#endif
+#else
+#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
             app_pm_lowPowerEnter();
 #else
             drv_pm_lowPowerEnter();
+#endif
 #endif
         }
 #endif
@@ -299,17 +325,27 @@ void user_init(bool isRetention)
         bdb_defaultReportingCfg(APP_ENDPOINT1, HA_PROFILE_ID, ZCL_CLUSTER_GEN_POWER_CFG,
                 ZCL_ATTRID_BATTERY_PERCENTAGE_REMAINING, REPORTING_BATTERY_MIN, REPORTING_BATTERY_MAX, (uint8_t *)&reportableChange);
 
+#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+        bdb_defaultReportingCfg(APP_ENDPOINT1, HA_PROFILE_ID, ZCL_CLUSTER_MS_OCCUPANCY_SENSING,
+                ZCL_ATTRID_OCCUPANCY, 0, 3600, (uint8_t *)&reportableChange);
+        uint16_t prucho2_lux_change = 10;
+        bdb_defaultReportingCfg(APP_ENDPOINT1, HA_PROFILE_ID, ZCL_CLUSTER_MS_ILLUMINANCE_MEASUREMENT,
+                ZCL_ATTRID_MEASURED_VALUE, 10, 3600, (uint8_t *)&prucho2_lux_change);
+#else
         uint16_t reportableChange_u16 = 10;
         bdb_defaultReportingCfg(APP_ENDPOINT1, HA_PROFILE_ID, ZCL_CLUSTER_MS_TEMPERATURE_MEASUREMENT,
                 ZCL_TEMPERATURE_MEASUREMENT_ATTRID_MEASUREDVALUE, REPORTING_MIN, REPORTING_MAX, (uint8_t *)&reportableChange_u16);
         bdb_defaultReportingCfg(APP_ENDPOINT1, HA_PROFILE_ID, ZCL_CLUSTER_MS_RELATIVE_HUMIDITY,
                 ZCL_RELATIVE_HUMIDITY_MEASUREMENT_ATTRID_MEASUREDVALUE, REPORTING_MIN, REPORTING_MAX, (uint8_t *)&reportableChange_u16);
+#endif
 
         /* Initialize BDB */
         uint8_t repower = drv_pm_deepSleep_flag_get() ? 0 : 1;
         bdb_init((af_simple_descriptor_t *)&app_ep1Desc, &g_bdbCommissionSetting, &g_zbBdbCb, repower);
 
+#if (BOARD != BOARD_PRUCHO2_PIR_ZG204ZL)
         app_sensor_get_period();
+#endif
 
     }else{
         /* Re-config phy when system recovery from deep sleep with retention */
