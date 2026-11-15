@@ -39,8 +39,8 @@ void prucho2_pir_note_wakeup(void) {
 }
 
 static bool read_pir(void) {
-    /* Direct Telink GPIO read, matching working PVVX sensor_pir.c. */
-    return gpio_read(PRUCHO2_PIR_GPIO) == PRUCHO2_PIR_ACTIVE_LEVEL;
+    /* Slacky GPIO wrapper; on TLSR8253 it delegates to gpio_read(). */
+    return drv_gpio_read(PRUCHO2_PIR_GPIO) == PRUCHO2_PIR_ACTIVE_LEVEL;
 }
 
 static void request_occupancy(uint8_t value) {
@@ -180,11 +180,9 @@ void prucho2_pir_task(void) {
 }
 
 void prucho2_pir_prepare_sleep(void) {
-    /* Keep Slacky handling of the pairing button but use the proven PVVX
-     * direct wake setup on PD4, opposite to its current electrical level. */
+    /* Restore Slacky's shared wakeup configuration for button and PD4. */
     extern drv_pm_pinCfg_t g_switchPmCfg[];
-    drv_pm_wakeupPinLevelChange(g_switchPmCfg, 1);
-    cpu_set_gpio_wakeup(PRUCHO2_PIR_GPIO, !gpio_read(PRUCHO2_PIR_GPIO), 1);
+    drv_pm_wakeupPinLevelChange(g_switchPmCfg, 2);
 }
 
 #endif
