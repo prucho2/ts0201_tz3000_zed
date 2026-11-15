@@ -105,5 +105,7 @@ jobs:
           git add docs/PRUCHO2_PIR_BUILD_STATUS.md
           if ! git diff --cached --quiet; then
             git commit -m "ci: record experimental PIR build status [skip ci]"
-            git push
+            if ! git push; then
+              echo "Nonfatal: build artifact is uploaded, status markdown push raced with another commit."
+            fi
           fi
