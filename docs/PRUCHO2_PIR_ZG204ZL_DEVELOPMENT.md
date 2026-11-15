@@ -97,3 +97,13 @@ No flashing until a **successful clean build**, explicit firmware metadata check
 
 ### TEST Zigbee2MQTT custom attribute reader
 The Z2M Windfront Dev console attribute dropdown only shows built-in attributes; custom 0xF100..0xF10A cannot be selected. This was missed during initial v0.1.42 planning. The external converter was extended with explicit `entity.read('msOccupancySensing', [numeric IDs])` requests and `fromZigbee` response decoding. It adds read-only diagnostic exposes (`pir_gpio`, `pir_rising_edges`, etc.) with refresh/get functionality. On HA TEST, replace the existing `external_converters/prucho2_pir_zg204zl.mjs` with this version and restart only Zigbee2MQTT Edge. This converter extension has been committed but has NOT yet been tested with Z2M and physical diagnostic firmware; any read error must be observed before relying on the values.
+
+## Diagnostic read attempt on HA TEST — 2026-11-15 22:14 UTC
+
+- Confirmed through Bridge v0.5 GitHub IPC and HA TEST Zigbee2MQTT frontend that `pir-prucho` is connected; MQTT state still `occupancy:false` while illuminance reports every ~10 seconds.
+- Z2M Dev console limits attributes to named ZCL entries; custom 0xF100..0xF10A not selectable.
+- TEST-only converter `prucho2_pir_zg204zl.mjs` was updated via MQTT converter/save (first attempt failed because concurrently added diagnostic declarations both named `pirDiagnostics`; duplicate removed, second attempt **status ok** and Z2M log confirms loaded).
+- Converter now has `diagRead` with per-property GET e.g. `pir_gpio`, reading numeric IDs and `fromZigbee` translating numeric readResponses.
+- First read sent `zigbee2mqtt/pir-prucho/get` with `{"pir_gpio":""}`. Z2M did invoke `msOccupancySensing.read([61696,...61706])` but **timed out after 10 s**. This is *not* a measured diagnostic value and does not prove GPIO=0. It suggests sleeping end device might not have received ZCL request. Need repeat while device awake (short press button invokes `app_setPollRate(TIMEOUT_20SEC)` in Slacky's `src/app_button.c`). Do not hold >=5 seconds, which factory-resets.
+- Generic MQTT `{"read":{...}}` was rejected as `No converter available for 'get' 'read'`, so use supported per-key GET.
+- No HA MAIN operations or restart.
