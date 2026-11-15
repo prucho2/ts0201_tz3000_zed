@@ -72,3 +72,25 @@ No flashing until a **successful clean build**, explicit firmware metadata check
 - Version: `v0.1.41`, manufacturer `0x6565`, image type `0x022D`, image file version `0x01413001`.
 - Compiler/linker validated, binary produced. `text 151460 / data 816 / bss 13268` bytes shown by linker size tool.
 - **Unverified:** live motion events, sleep/wakeup energy and edge handling, lux ADC physical accuracy, end-to-end Zigbee2MQTT reports, converter behavior, OTA update path. The first hardware trial is permitted only on isolated TEST device after backup and review.
+
+
+## TEST hardware finding, 15 November 2026: v0.1.41 occupancy stuck at zero
+
+- Test PIR joined Zigbee2MQTT Edge as `Prucho2-PIR-z`, FW `v0.1.41`; illuminance updated normally.
+- Direct ZCL read of endpoint 1, cluster `msOccupancySensing`, attribute `occupancy` returned **0**, even though user moved in front of PIR.
+- The converter, standard Zigbee endpoint and ZCL attribute are present. This alone does not distinguish absent PD4 changes, missed wakeup, short pulses or state-machine failure.
+- PVVX functioned on the same hardware, so distinguish PVVX GPIO/PM behavior from our Slacky-based event handling; do not attribute this to a different PCB or missing lux hardware.
+- **v0.1.42 diagnostic:** read-only attributes on endpoint 1 / cluster 0x0406. Read their **numeric IDs** in Z2M Dev console. These counters are RAM counters; battery cold boot resets them.
+  - `0xF100` UINT8 current sampled PD4 level (0/1)
+  - `0xF101` UINT32 rising edges (observed)
+  - `0xF102` UINT32 falling edges (observed)
+  - `0xF103` UINT32 occupancy change reports requested
+  - `0xF104` UINT32 Zigbee report commands successfully enqueued (NOT ACKed)
+  - `0xF105` UINT32 failed enqueue attempts/retries
+  - `0xF106` UINT32 event timer callbacks
+  - `0xF107` UINT32 app-task calls sampling PD4 HIGH
+  - `0xF108` UINT32 app-task calls sampling PD4 LOW
+  - `0xF109` UINT32 sleep-return calls (all sources, not exclusively GPIO)
+  - `0xF10A` UINT32 total app-task PD4 samples.
+- Read 0xF100, 0xF101, 0xF107, 0xF109 before/after PIR movement. If no rise/high samples, investigate pin signal and sleep; if rises, investigate occupancy ZCL/reporting. If manual read of these attributes is rejected by converter/Dev console, fix the *diagnostic transport* before interpreting values.
+- The test build is *diagnostic, not a confirmed fix*. Do not flash any MAIN device or alter the unified PCB profile.
