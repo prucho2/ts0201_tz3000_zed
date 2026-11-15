@@ -322,9 +322,9 @@ void user_init(bool isRetention)
 #if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
         bdb_defaultReportingCfg(APP_ENDPOINT1, HA_PROFILE_ID, ZCL_CLUSTER_MS_OCCUPANCY_SENSING,
                 ZCL_ATTRID_OCCUPANCY, 0, 3600, (uint8_t *)&reportableChange);
-        uint16_t prucho2_lux_change = 10;
-        bdb_defaultReportingCfg(APP_ENDPOINT1, HA_PROFILE_ID, ZCL_CLUSTER_MS_ILLUMINANCE_MEASUREMENT,
-                ZCL_ATTRID_MEASURED_VALUE, 10, 3600, (uint8_t *)&prucho2_lux_change);
+        /* Illuminance has read-only ZCL attribute and manual threshold-triggered
+         * reports in app_pir_lux_prucho2.c. Do not configure the generic
+         * ZCL reporting scheduler, which duplicates the outgoing packets. */
 #else
         uint16_t reportableChange_u16 = 10;
         bdb_defaultReportingCfg(APP_ENDPOINT1, HA_PROFILE_ID, ZCL_CLUSTER_MS_TEMPERATURE_MEASUREMENT,
