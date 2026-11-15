@@ -107,3 +107,19 @@ The Z2M Windfront Dev console attribute dropdown only shows built-in attributes;
 - First read sent `zigbee2mqtt/pir-prucho/get` with `{"pir_gpio":""}`. Z2M did invoke `msOccupancySensing.read([61696,...61706])` but **timed out after 10 s**. This is *not* a measured diagnostic value and does not prove GPIO=0. It suggests sleeping end device might not have received ZCL request. Need repeat while device awake (short press button invokes `app_setPollRate(TIMEOUT_20SEC)` in Slacky's `src/app_button.c`). Do not hold >=5 seconds, which factory-resets.
 - Generic MQTT `{"read":{...}}` was rejected as `No converter available for 'get' 'read'`, so use supported per-key GET.
 - No HA MAIN operations or restart.
+
+## 2026-11-15 — v0.1.43: user-requested battery-saving illuminance changes
+
+Observed live on HA TEST: Z2M logs showed `pir-prucho` repeatedly publishing illuminance at about 10-second intervals, sometimes twice with the same value. Full Zigbee interview completed successfully while diagnostics `msOccupancySensing.read([0xF100..0xF10A])` timed out. **Successful interview makes an incorrect or oversized diagnostic read plausible; don't claim that a lack of returned diagnostic values proves PIR input stayed low.**
+
+V0.1.43 changes:
+- ADC sampling once per 60 s. Sampling alone does not send Zigbee radio traffic.
+- One initial illuminance report after joining; thereafter report **only when physically estimated illuminance changed by >=50 lx compared with the previous report**, in either direction. No hourly unconditional sync.
+- Disable generic ZCL illuminance reporting registration in app_main.c and remove `REPORTABLE` attribute flag in app_endpoint_cfg.c; converter uses `illuminance({reporting:false})`. This avoids automatic duplicate packets on top of our manual reports. This only affects the illuminance cluster, not the standard occupancy/reporting behavior.
+- Fix 32-bit arithmetic overflow in the approximate photodetector fourth-power conversion and the Zigbee logarithmic lux encoding. Telink TC32 did not link 64-bit helper calls (`__muldi3`, `__udivdi3`) in the first implementation, therefore final implementation uses **32-bit Q12/Q15 fixed-point** arithmetic.
+- Diagnostic converter `diagRead.convertGet` requests **one selected diagnostic ZCL attribute** rather than all 11 simultaneously; responses will still require a reachable sleepy endpoint and an actual ZCL Read response. This is an improvement to transport, not proof that diagnostics or PIR detection now work.
+- v0.1.43 firmware image metadata: `0x01433001`, manufacturer `0x6565`, image type `0x022d`.
+- GPIO PD4 active high comes from PVVX `src/board_zg204zl.h`; PVVX's `task_pir` updates occupancy on input and explicitly configures opposite-level wake with `cpu_set_gpio_wakeup`. Our Slacky-based power handling remains a separately designed implementation, still requiring hardware validation. No claim of fixed occupancy.
+- For OTA and test, use only the validated `last_version.bin` and `0x01433001` .zigbee file. Legacy Makefile may generate a stale name containing `V0.1.41` despite current metadata; workflow artifact list is now restricted to avoid that unrelated filename.
+
+**Status:** GitHub Actions build for v0.1.43 validated and uploaded; pending TEST physical check for battery-friendly reporting and PIR. Do not flash MAIN PIR or change production HA.
