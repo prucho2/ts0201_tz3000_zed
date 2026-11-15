@@ -1,6 +1,6 @@
 # Prucho2 PIR (ZG-204ZL) — Slacky-DIY firmware development
 
-**Status:** DEVELOPMENT, not compiled, not validated on hardware, DO NOT FLASH.  
+**Status:** FIRST PROTOTYPE SOURCE COMMITTED, compile status not yet independently confirmed, not hardware-validated — DO NOT FLASH.  
 **Target:** Telink TLSR8253, hardware designation **ZG-204ZL**, **one identical PCB and one firmware image**. Some units have the lux sensor components soldered; others have the same component footprints unpopulated.  
 **Working branch:** `dev/prucho2-pir-zg204zl` of `prucho2/ts0201_tz3000_zed`. Production `main` and all existing TH board builds remain unchanged.
 
@@ -46,9 +46,9 @@ PVVX `sensor_pir.c`: `occupancyTimerCb()` keeps occupancy high and returns 0 if 
 
 - **A — Baseline / preflight:** inventory Slacky TS0201 ZCL registration, reporting callbacks, `app_pm.c`, timer behavior, boot/init retention semantics, available flash and SDK TLSR8253 support.
 - **B — Board profile:** add conditional ZG-204ZL GPIO header, power/ADC and battery profile; keep original TH builds untouched.
-- **C — New event module:** Slacky-style PIR state machine and wake-up integration, retain original Slacky Zigbee networking.
-- **D — Clusters / reporting:** occupancy 0x0406 and illuminance 0x0400, config/diagnostic attributes, Z2M converter when necessary.
-- **E — Build:** separate GitHub Actions artifact with unique **development** version and OTA image type; do not archive it among known-good TH firmware.
+- **C — New event module:** first implementation committed: Slacky-style PIR state machine, GPIO wake, occupancy ZCL reports, timer checks and periodic synchronization. Not yet validated on hardware.
+- **D — Clusters / reporting:** occupancy 0x0406 and illuminance 0x0400 added as initial code. Lux sampled every 10 seconds through SDK ADC, configurable ZCL occupancy delay; further Z2M validation and calibration are pending.
+- **E — Build:** added .github/workflows/build-prucho2-pir.yml for experimental board **0x2D**, file version **0x01413001**, image type **0x022D**, v0.1.41. Workflow is not a declaration of a successful compile. Never publish as known-good before validating build logs.
 - **F — Hardware:** backup full raw flash, program the **disassembled third test PIR only**, join TEST coordinator, test PIR GPIO and 1s/3s/35s occupancy on the disassembled TEST unit, Z2M reports, power draw and OTA. No MAIN restarts; do not modify MAIN PIRs.
 
 ## Slacky code references
