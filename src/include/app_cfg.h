@@ -134,6 +134,7 @@
 #include "board_sonoff_snzb02_cht8305.h"
 #include "board_zth01_jq_v20.h"
 #include "board_gxhtv4_pc2pc3.h"
+#include "board_zg204zl_pir_prucho2.h"
 #endif
 
 /* Voltage detect module */
@@ -169,8 +170,15 @@
 #endif
 #define ZCL_ON_OFF_SUPPORT                          ON
 #define ZCL_ON_OFF_SWITCH_CFG_SUPPORT               ON
+#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+#define ZCL_TEMPERATURE_MEASUREMENT_SUPPORT         OFF
+#define ZCL_HUMIDITY_MEASUREMENT_SUPPORT            OFF
+#define ZCL_OCCUPANCY_SENSING_SUPPORT               ON
+#define ZCL_ILLUMINANCE_MEASUREMENT_SUPPORT         ON
+#else
 #define ZCL_TEMPERATURE_MEASUREMENT_SUPPORT         ON
 #define ZCL_HUMIDITY_MEASUREMENT_SUPPORT            ON
+#endif
 
 /**********************************************************************
  * Stack configuration
