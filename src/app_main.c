@@ -233,7 +233,12 @@ void app_task(void) {
 #if PM_ENABLE
         button_handler();
         if(!button_idle()) {
-#if DEBUG_PM_EN || (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+            /* PVVX re-arms PIR wake after sampling; use stock Slacky sleep. */
+            prucho2_pir_prepare_sleep();
+            drv_pm_lowPowerEnter();
+            prucho2_pir_note_wakeup();
+#elif DEBUG_PM_EN
             app_pm_lowPowerEnter();
 #else
             drv_pm_lowPowerEnter();
@@ -282,6 +287,12 @@ void user_init(bool isRetention)
 #endif
 
 #if PM_ENABLE
+#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+    /* Retention wake may bypass app initialization: re-enable PD4 input. */
+    drv_gpio_func_set(PRUCHO2_PIR_GPIO);
+    drv_gpio_output_en(PRUCHO2_PIR_GPIO, false);
+    drv_gpio_input_en(PRUCHO2_PIR_GPIO, true);
+#endif
     drv_pm_wakeupPinConfig(g_switchPmCfg, sizeof(g_switchPmCfg)/sizeof(drv_pm_pinCfg_t));
 #endif
 
