@@ -23,6 +23,7 @@ $(OUT_PATH)/$(SRC_PATH)/app_timer.o \
 $(OUT_PATH)/$(SRC_PATH)/app_config.o \
 $(OUT_PATH)/$(SRC_PATH)/app_i2c.o \
 $(OUT_PATH)/$(SRC_PATH)/app_sensor.o \
+$(OUT_PATH)/$(SRC_PATH)/app_pir_prucho2.o \
 $(OUT_PATH)/$(SRC_PATH)/app_binding.o \
 $(OUT_PATH)/$(SRC_PATH)/app_button.o \
 $(OUT_PATH)/$(SRC_PATH)/app_led.o \
