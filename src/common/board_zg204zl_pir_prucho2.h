@@ -9,8 +9,10 @@
  * GPIO wake source and independent light ADC driver must be added
  * and compiled before it is safe to flash.
  *
- * The second board variant omits the lux sensor electrical components.
- * Do not assume absent ADC hardware can be safely probed.
+ * SAME PCB, SAME firmware and GPIOs for all devices. Some production units
+ * simply have no light-sensor components soldered. The absent sensor must
+ * result in a safe 0-lux reading without interfering with PIR responsiveness.
+ * Validate the unpopulated ADC circuit on hardware before flashing.
  */
 #ifndef PRUCHO2_BOARD_ZG204ZL_PIR_H_
 #define PRUCHO2_BOARD_ZG204ZL_PIR_H_
@@ -35,14 +37,6 @@
 
 #define PRUCHO2_PIR_DEFAULT_HOLD_SEC 3
 
-/*
- * Two physical variants:
- *  - LUX_PRESENT=1: PC4/PD3 have fitted light sensor circuitry.
- *  - LUX_PRESENT=0: no light sensor; firmware must not publish fake lux.
- * Select at build time until safe autodetection is verified.
- */
-#ifndef PRUCHO2_PIR_LUX_PRESENT
-#define PRUCHO2_PIR_LUX_PRESENT 0
-#endif
+/* No separate light-sensor board variant, build flag or firmware image. */
 
 #endif /* PRUCHO2_BOARD_ZG204ZL_PIR_H_ */
