@@ -68,7 +68,7 @@ jobs:
         with:
           name: prucho2-pir-zg204zl-v0.1.43-UNTESTED
           path: |
-            bin/prucho2_zg204zl_pir*.bin
+            bin/prucho2_zg204zl_pir_last_version.bin
             bin/*prucho2_zg204zl_pir*.zigbee
           if-no-files-found: error
           retention-days: 14
