@@ -50,7 +50,7 @@
 
 #if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
 #define APP_RELEASE                         0x01
-#define APP_BUILD                           0x45  /* v0.1.45 restored Slacky PD4 path; diagnostics retained */
+#define APP_BUILD                           0x46  /* v0.1.46 PIR explicit GPIO init + standard PM; lux heartbeat+threshold */
 #elif (BOARD == BOARD_SONOFF_SNZB02_CHT8305)
 #define APP_RELEASE                         0x70        // custom Sonoff: v7.0
 #define APP_BUILD                           0x02        // custom Sonoff: v7.0.02
