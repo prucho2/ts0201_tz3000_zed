@@ -370,7 +370,7 @@ const zclAttrInfo_t prucho2_occup_attrTbl[] = {
 };
 #define PRUCHO2_OCC_ATTR_NUM (sizeof(prucho2_occup_attrTbl) / sizeof(zclAttrInfo_t))
 const zclAttrInfo_t prucho2_lux_attrTbl[] = {
-    { ZCL_ATTRID_MEASURED_VALUE,            ZCL_UINT16, RR, (uint8_t *)&prucho2_lux },
+    { ZCL_ATTRID_MEASURED_VALUE,            ZCL_UINT16, R,  (uint8_t *)&prucho2_lux },
     { ZCL_ATTRID_GLOBAL_CLUSTER_REVISION,   ZCL_UINT16, R,  (uint8_t *)&zcl_attr_global_clusterRevision },
 };
 #define PRUCHO2_LUX_ATTR_NUM (sizeof(prucho2_lux_attrTbl) / sizeof(zclAttrInfo_t))
