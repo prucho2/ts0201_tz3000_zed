@@ -4,8 +4,22 @@
  * Not tested on physical hardware. Zigbee2MQTT 2.11+ requires:
  * advanced: {enable_external_js: true}.
  */
-import {occupancy, illuminance, battery} from 'zigbee-herdsman-converters/lib/modernExtend';
+import {occupancy, battery} from 'zigbee-herdsman-converters/lib/modernExtend';
 import {presets as e, access as ea} from 'zigbee-herdsman-converters/lib/exposes';
+
+// v0.1.43+: firmware publishes illuminance manually on >=50 lx change.
+// Do NOT use modernExtend illuminance() here: a stale/implicit configureReporting
+// request for measuredValue fails with UNSUPPORTED_ATTRIBUTE and aborts configure.
+const manualIlluminance = {
+    cluster: 'msIlluminanceMeasurement',
+    type: ['attributeReport', 'readResponse'],
+    convert: (model, msg) => {
+        const encoded = msg.data.measuredValue ?? msg.data[0] ?? msg.data['0'];
+        if (typeof encoded !== 'number' || encoded === 0xFFFF) return {};
+        const illuminance = encoded === 0 ? 0 : Math.round(Math.pow(10, (encoded - 1) / 10000));
+        return {illuminance};
+    },
+};
 
 const occupancyTimeout = {
     key: ['occupancy_timeout'],
@@ -66,15 +80,17 @@ export default {
     zigbeeModel: ['Prucho2-PIR-z'],
     model: 'Prucho2-PIR-ZG204ZL',
     vendor: 'Prucho2 / Slacky-DIY',
-    description: 'ZG-204ZL Telink PIR with optional populated lux components; one identical firmware for all boards',
+    description: 'ZG-204ZL v0.1.43+ manual illuminance reporting (no configureReporting); TEST',
     extend: [
         occupancy({reporting: true, reportingConfig: {min: 'MIN', max: '1_HOUR', change: 0}}),
-        illuminance({reporting: false}),
+        // Manual illuminance reporting in device firmware; no ZCL configureReporting.
         battery({voltage: true}),
     ],
-    fromZigbee: [pirDiagnostics],
+    fromZigbee: [manualIlluminance, pirDiagnostics],
     toZigbee: [occupancyTimeout, diagRead],
     exposes: [
+        e.numeric('illuminance', ea.STATE).withUnit('lx')
+            .withDescription('Illuminance, device-driven threshold reports; no configureReporting'),
         ...Object.keys(diagAttributes).map((name) => e.numeric(name, ea.STATE_GET).withDescription('Prucho2 PIR diagnostic ZCL counter, click refresh to read; v0.1.42')),
         e.numeric('occupancy_timeout', ea.ALL).withUnit('s')
             .withValueMin(1).withValueMax(600).withValueStep(1)
