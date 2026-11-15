@@ -37,6 +37,7 @@
 #define BOARD_SONOFF_SNZB02_CHT8305          0x2A
 #define BOARD_ZTH01_JQ_V20                    0x2B
 #define BOARD_GXHTV4_PC2PC3                   0x2C
+#define BOARD_PRUCHO2_PIR_ZG204ZL               0x2D
 
 #ifndef BOARD
 //#define BOARD                               BOARD_HXDZ_ZBWSD_V02
@@ -47,7 +48,10 @@
 #define BOARD                               BOARD_TH01_ZBEACON
 #endif
 
-#if (BOARD == BOARD_SONOFF_SNZB02_CHT8305)
+#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+#define APP_RELEASE                         0x01
+#define APP_BUILD                           0x41  /* v0.1.41 experimental, never auto-published */
+#elif (BOARD == BOARD_SONOFF_SNZB02_CHT8305)
 #define APP_RELEASE                         0x70        // custom Sonoff: v7.0
 #define APP_BUILD                           0x02        // custom Sonoff: v7.0.02
 #elif (BOARD == BOARD_ZTH01_JQ_V20)
@@ -69,7 +73,7 @@
 #define BUILD_DATE "20250611"
 #endif
 
-#if (BOARD == BOARD_SONOFF_SNZB02_CHT8305) || (BOARD == BOARD_ZTH01_JQ_V20) || (BOARD == BOARD_GXHTV4_PC2PC3)
+#if (BOARD == BOARD_SONOFF_SNZB02_CHT8305) || (BOARD == BOARD_ZTH01_JQ_V20) || (BOARD == BOARD_GXHTV4_PC2PC3) || (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
 #include "sonoff_build_date.h"
 #define ZCL_BASIC_DATE_CODE    SONOFF_BUILD_DATE
 #else
