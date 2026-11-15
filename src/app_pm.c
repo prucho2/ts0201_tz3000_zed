@@ -18,6 +18,9 @@ void app_pm_lowPowerEnter(void) {
     apsCleanToStopSecondClock();
 #endif
 
+#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+    prucho2_pir_prepare_sleep();
+#endif
     u32 r = drv_disable_irq();
 
     ev_timer_event_t *timerEvt = ev_timer_nearestGet();
