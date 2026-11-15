@@ -270,9 +270,13 @@ int32_t forcedReportCb(void *arg) {
     if(zb_isDeviceJoinedNwk()){
 
         TL_SCHEDULE_TASK(forceReportBattery, NULL);
+#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+        prucho2_pir_request_sync();
+#else
         TL_SCHEDULE_TASK(forceReportTemperature, NULL);
         TL_SCHEDULE_TASK(forceReportHumidity, NULL);
         TL_SCHEDULE_TASK(forceReportSwitchAction, NULL);
+#endif
 
     }
 
