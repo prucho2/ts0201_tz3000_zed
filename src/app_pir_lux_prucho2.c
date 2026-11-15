@@ -4,20 +4,21 @@
 
 /*
  * Battery-friendly light reporting:
- * - ADC sampling every 60 s (local, no radio transmission).
- * - One initial report after Zigbee join.
- * - Subsequent reports ONLY if physical light changed by >= 50 lx
- *   compared with the last successfully queued report.
- * - No periodic hourly synchronization and no 10 s forced reports.
+ * - Local ADC checks every 2 s to detect >=50 lx changes promptly.
+ * - One report after Zigbee join; additionally a Zigbee report every 60 s.
+ * - Also report when light differs by >=50 lx from the last sent value.
+ * - Local ADC checks do not themselves generate Zigbee traffic.
  * - One shared image for PCB variants with/without the lux components.
  */
-#define PRUCHO2_LUX_SAMPLE_MS   60000UL
+#define PRUCHO2_LUX_SAMPLE_MS   2000UL
+#define PRUCHO2_LUX_REPORT_MS   60000UL
 #define PRUCHO2_LUX_DELTA_LX    50UL
 
 static bool sample_due = false;
 static bool first_report = true;
 static bool need_report = false;
 static uint32_t last_reported_lux = 0;
+static uint32_t last_report_time = 0;
 static uint32_t measured_lux = 0;
 static ev_timer_event_t *luxTimer = NULL;
 
@@ -83,6 +84,7 @@ void prucho2_lux_init(void) {
         luxTimer = TL_ZB_TIMER_SCHEDULE(lux_periodCb, NULL, PRUCHO2_LUX_SAMPLE_MS);
     sample_due = true;
     first_report = true;
+    last_report_time = clock_time();
 }
 
 void prucho2_lux_task(void) {
@@ -93,7 +95,8 @@ void prucho2_lux_task(void) {
         uint32_t diff = measured_lux > last_reported_lux
             ? measured_lux - last_reported_lux
             : last_reported_lux - measured_lux;
-        need_report = first_report || (diff >= PRUCHO2_LUX_DELTA_LX);
+        need_report = need_report || first_report || (diff >= PRUCHO2_LUX_DELTA_LX)
+            || clock_time_exceed(last_report_time, PRUCHO2_LUX_REPORT_MS * 1000UL);
     }
     if (need_report && zb_isDeviceJoinedNwk()) {
         epInfo_t dst;
@@ -107,6 +110,7 @@ void prucho2_lux_task(void) {
             need_report = false;
             first_report = false;
             last_reported_lux = measured_lux;
+            last_report_time = clock_time();
         }
     }
 }
