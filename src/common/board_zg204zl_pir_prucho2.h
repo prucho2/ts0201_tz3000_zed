@@ -11,8 +11,8 @@
  *
  * SAME PCB, SAME firmware and GPIOs for all devices. Some production units
  * simply have no light-sensor components soldered. The absent sensor must
- * result in a safe 0-lux reading without interfering with PIR responsiveness.
- * Validate the unpopulated ADC circuit on hardware before flashing.
+ * report 0 lux, as already established by the identical factory/PVVX firmware.
+ * No special variant handling or extra sensor-population tests are required.
  */
 #ifndef PRUCHO2_BOARD_ZG204ZL_PIR_H_
 #define PRUCHO2_BOARD_ZG204ZL_PIR_H_
