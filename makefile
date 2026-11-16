@@ -71,7 +71,7 @@ MAKE_INCLUDES := ./make
 TOOLS_PATH := ./tools
 ifeq ($(PROJECT_NAME),prucho2_zg204zl_pir)
 VERSION_RELEASE := V0.1
-VERSION_BUILD := 41
+VERSION_BUILD := 47
 else
 ifeq ($(PROJECT_NAME),ts0201_tz3000_0x2c_zed)
 VERSION_RELEASE := V7.0
