@@ -11,7 +11,7 @@ on:
       - '.github/workflows/build-pir-project.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -36,6 +36,23 @@ jobs:
       - name: Compile project-folder sources; check image version and CRC
         run: |
           python3 "New Firmware Prucho2/0x2D - ZG-204ZL PIR/build.py"
+      - name: Commit validated BIN and OTA into PIR project bin folder
+        shell: bash
+        run: |
+          set -euo pipefail
+          BIN_DIR="New Firmware Prucho2/0x2D - ZG-204ZL PIR/bin"
+          # Firmware files were validated (including CRC32) by build.py.
+          # -f handles any upstream ignore rules for *.bin.
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f -- "$BIN_DIR"/*.bin "$BIN_DIR"/*.zigbee
+          if ! git diff --cached --quiet; then
+            git commit -m "build(PIR 0x2D): archive tested build outputs [skip ci]"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          else
+            echo "Firmware files already match the repository versions."
+          fi
       - name: Downloadable firmware for TEST only
         uses: actions/upload-artifact@v4
         with:
