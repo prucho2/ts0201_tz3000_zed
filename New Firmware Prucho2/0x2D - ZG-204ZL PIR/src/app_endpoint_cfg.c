@@ -371,6 +371,16 @@ const zclAttrInfo_t prucho2_occup_attrTbl[] = {
 #define PRUCHO2_OCC_ATTR_NUM (sizeof(prucho2_occup_attrTbl) / sizeof(zclAttrInfo_t))
 const zclAttrInfo_t prucho2_lux_attrTbl[] = {
     { ZCL_ATTRID_MEASURED_VALUE,            ZCL_UINT16, RR, (uint8_t *)&prucho2_lux },
+    { 0xF200, ZCL_UINT32, R, (uint8_t *)&prucho2_lux_diag_timer_ticks },
+    { 0xF201, ZCL_UINT32, R, (uint8_t *)&prucho2_lux_diag_samples },
+    { 0xF202, ZCL_UINT16, R, (uint8_t *)&prucho2_lux_diag_vbat_adc },
+    { 0xF203, ZCL_UINT16, R, (uint8_t *)&prucho2_lux_diag_pc4_adc },
+    { 0xF204, ZCL_UINT16, R, (uint8_t *)&prucho2_lux_diag_zcl },
+    { 0xF205, ZCL_UINT32, R, (uint8_t *)&prucho2_lux_diag_report_attempts },
+    { 0xF206, ZCL_UINT32, R, (uint8_t *)&prucho2_lux_diag_reports_enqueued },
+    { 0xF207, ZCL_UINT32, R, (uint8_t *)&prucho2_lux_diag_reports_failed },
+    { 0xF208, ZCL_UINT32, R, (uint8_t *)&prucho2_lux_diag_snapshots_enqueued },
+    { 0xF209, ZCL_UINT8, R, (uint8_t *)&prucho2_lux_diag_status },
     { ZCL_ATTRID_GLOBAL_CLUSTER_REVISION,   ZCL_UINT16, R,  (uint8_t *)&zcl_attr_global_clusterRevision },
 };
 #define PRUCHO2_LUX_ATTR_NUM (sizeof(prucho2_lux_attrTbl) / sizeof(zclAttrInfo_t))
