@@ -26,12 +26,18 @@ static bool lux_diag_pending = true;
 static uint32_t lux_diag_sent_at = 0;
 static bool lux_diag_sent_once = false;
 
+
+static bool sample_due = false;
+static bool need_report = false;
+static uint16_t last_reported_lux = 0;
+static uint32_t last_report_tick = 0;
+static ev_timer_event_t *luxTimer = NULL;
+
 static void lux_diag_send(void) {
     if (!zb_isDeviceJoinedNwk()) return;
     prucho2_lux_diag_status = (prucho2_lux_diag_status & 0x03)
         | 0x04 | (need_report ? 0x08 : 0);
-    if (!lux_diag_pending &&
-            lux_diag_sent_once &&
+    if (lux_diag_sent_once &&
             !clock_time_exceed(lux_diag_sent_at, PRUCHO2_LUX_DIAG_MS * 1000UL)) return;
     const u16 ids[10] = {
         0xF200,0xF201,0xF202,0xF203,0xF204,
@@ -66,11 +72,6 @@ static void lux_diag_send(void) {
     }
 }
 
-static bool sample_due = false;
-static bool need_report = false;
-static uint16_t last_reported_lux = 0;
-static uint32_t last_report_tick = 0;
-static ev_timer_event_t *luxTimer = NULL;
 
 /* Convert lux to standard Zigbee Illuminance measuredValue:
  * 10000*log10(lux)+1. Integer fixed-point log2 avoids libm and FPU.
