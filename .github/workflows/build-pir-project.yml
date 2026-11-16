@@ -1,0 +1,47 @@
+name: PIR 0x2D - Build from project folder
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev/prucho2-pir-pvvx-v141-baseline
+    paths:
+      - 'New Firmware Prucho2/0x2D - ZG-204ZL PIR/src/**'
+      - 'New Firmware Prucho2/0x2D - ZG-204ZL PIR/build.py'
+      - '.github/workflows/build-pir-project.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make python3 curl bzip2 libncurses5
+      - name: Install Telink TC32 compiler
+        run: |
+          sudo mkdir -p /opt/tc32
+          curl -fL --retry 3 "https://raw.githubusercontent.com/prucho2/ZigbeeTLc-PIR/master/tools/linux/tc32_gcc_v2.0.tar.bz2" -o /tmp/tc32.tar.bz2
+          sudo tar -xjf /tmp/tc32.tar.bz2 -C /opt/tc32
+          COMPILER=$(find /opt/tc32 -type f -name tc32-elf-gcc -print -quit)
+          test -n "$COMPILER"
+          if [ "$(dirname "$COMPILER")" != "/opt/tc32/bin" ]; then
+            sudo ln -s "$(dirname "$COMPILER")" /opt/tc32/bin
+          fi
+          /opt/tc32/bin/tc32-elf-gcc --version
+      - name: Compile project-folder sources; check image version and CRC
+        run: |
+          python3 "New Firmware Prucho2/0x2D - ZG-204ZL PIR/build.py"
+      - name: Downloadable firmware for TEST only
+        uses: actions/upload-artifact@v4
+        with:
+          name: PIR-0x2D-test-build
+          path: |
+            New Firmware Prucho2/0x2D - ZG-204ZL PIR/bin/*.bin
+            New Firmware Prucho2/0x2D - ZG-204ZL PIR/bin/*.zigbee
+          if-no-files-found: error
+          retention-days: 30
