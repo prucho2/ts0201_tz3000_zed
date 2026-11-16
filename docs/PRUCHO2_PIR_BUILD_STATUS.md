@@ -1,10 +1,10 @@
 # ZG-204ZL experimental firmware build status
 
-Workflow result: **success**
+Workflow result: **failure**
 
-Source SHA: `bb0094feda41a98be08809abb3454e5ebef031cb`
+Source SHA: `e25402032e64cc304e39b7356f01e4157ff4deb4`
 
-Run: https://github.com/prucho2/ts0201_tz3000_zed/actions/runs/43779578902
+Run: https://github.com/prucho2/ts0201_tz3000_zed/actions/runs/43780116174
 
 This is development-only and not approved for flashing.
 
