@@ -72,3 +72,13 @@ No flashing until a **successful clean build**, explicit firmware metadata check
 - Version: `v0.1.41`, manufacturer `0x6565`, image type `0x022D`, image file version `0x01413001`.
 - Compiler/linker validated, binary produced. `text 151460 / data 816 / bss 13268` bytes shown by linker size tool.
 - **Unverified:** live motion events, sleep/wakeup energy and edge handling, lux ADC physical accuracy, end-to-end Zigbee2MQTT reports, converter behavior, OTA update path. The first hardware trial is permitted only on isolated TEST device after backup and review.
+
+## 2026-11-16 — isolated source baseline v0.1.41 with PVVX PIR + full diagnostics
+
+Approved scope: use source exactly from v0.1.41 commit `5c41888e7f85a8888490b4ed1abd6c1ca75b26a2` for lux/PM/ZCL, plus PVVX PIR motion logic and full automatic 11-counter diagnostic snapshots. Separate branch `dev/prucho2-pir-pvvx-v141-baseline` leaves previous v0.1.46 source intact.
+
+- Lux implementation `src/app_pir_lux_prucho2.c` **unchanged from v0.1.41**: sample every 10 seconds; change threshold 10 Zigbee ZCL units; hourly fallback sync. No 50-lx threshold, no 60-second periodic reporting added. ZCL illuminance measuredValue remains RR/reportable; converter uses stock v0.1.41 `illuminance({reporting: {min: '10_SECONDS', max: '1_HOUR', change: 10}})` plus full diagnostic decoding.
+- PVVX `src/sensor_pir.c` occupancy lifecycle: PD4 active HIGH; on HIGH entry set occupancy=1 and arm hold timer; timer callback keeps occupied while HIGH (reschedule via return 0), clears when LOW after hold; each application sample arms `cpu_set_gpio_wakeup(PD4, !active, 1)`. Keep Slacky pushbutton wake separately; `prucho2_pir_prepare_sleep()` now touches PA1 only to prevent overriding PVVX PD4.
+- All 11 counters and combined automatic diagnostic ZCL report 0xF100..0xF10A retained; event-driven after initial join and observed PD4 transitions; 5s coalescing; numeric GET support remains.
+- The new image is v0.1.47 (`0x01473001`) **solely as an OTA-compatible version bump over existing 0.1.46**. It is constructed from 1.41 sources, not from 1.46.
+- No live device flashing or HA changes. Build must pass and hardware functionality remains unverified.
