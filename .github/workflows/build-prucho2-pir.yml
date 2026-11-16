@@ -63,6 +63,16 @@ jobs:
           assert v==0x01473001
           assert m==0x6565
           assert image==0x022d
+          import binascii
+          named = Path('bin/prucho2_zg204zl_pir_V0.1.47.bin')
+          assert named.exists(), 'Expected versioned binary not produced'
+          assert named.read_bytes() == b, 'last_version differs from versioned image'
+          assert not Path('bin/prucho2_zg204zl_pir_V0.1.41.bin').exists(), 'Old v0.1.41 binary leaked into package'
+          assert b[6:8] == b'\\x5d\\x02', 'Telink patched OTA magic missing'
+          crc_expected = int.from_bytes(b[-4:], 'little')
+          crc_actual = binascii.crc32(b[:-4]) ^ 0xffffffff
+          assert crc_expected == crc_actual, f'Telink CRC mismatch: {crc_expected:08x} != {crc_actual:08x}'
+          print(f'Versioned BIN matches last_version; CRC 0x{crc_actual:08x} OK')
           PY
       - name: Archive test build only
         uses: actions/upload-artifact@v4
