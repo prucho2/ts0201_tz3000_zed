@@ -68,7 +68,7 @@ jobs:
           assert named.exists(), 'Expected versioned binary not produced'
           assert named.read_bytes() == b, 'last_version differs from versioned image'
           assert not Path('bin/prucho2_zg204zl_pir_V0.1.41.bin').exists(), 'Old v0.1.41 binary leaked into package'
-          assert b[6:8] == b'\\x5d\\x02', 'Telink patched OTA magic missing'
+          assert b[6:8] == bytes([0x5d, 0x02]), 'Telink patched OTA magic missing'
           crc_expected = int.from_bytes(b[-4:], 'little')
           crc_actual = binascii.crc32(b[:-4]) ^ 0xffffffff
           assert crc_expected == crc_actual, f'Telink CRC mismatch: {crc_expected:08x} != {crc_actual:08x}'
