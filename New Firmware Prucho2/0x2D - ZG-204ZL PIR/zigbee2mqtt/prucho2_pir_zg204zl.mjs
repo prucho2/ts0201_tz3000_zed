@@ -22,6 +22,36 @@ const diagAttributes = {
     pir_sleep_returns: 0xF109,
     pir_poll_samples: 0xF10A,
 };
+const luxDiagAttributes = {
+    lux_timer_ticks: 0xF200,
+    lux_samples: 0xF201,
+    lux_adc_vbat: 0xF202,
+    lux_adc_pc4: 0xF203,
+    lux_zcl_value: 0xF204,
+    lux_report_attempts: 0xF205,
+    lux_reports_enqueued: 0xF206,
+    lux_reports_failed: 0xF207,
+    lux_diag_snapshots: 0xF208,
+    lux_status: 0xF209,
+};
+const lightDiagnostics = {
+    cluster: 'msIlluminanceMeasurement',
+    type: ['readResponse', 'attributeReport'],
+    convert: (model, msg) => {
+        const result = {};
+        for (const [name, id] of Object.entries(luxDiagAttributes)) {
+            const value = msg.data[id] ?? msg.data[String(id)] ?? msg.data['0x' + id.toString(16)];
+            if (typeof value === 'number') result[name] = value;
+        }
+        return result;
+    },
+};
+const luxDiagRead = {
+    key: Object.keys(luxDiagAttributes),
+    convertGet: async (entity, key) => {
+        await entity.read('msIlluminanceMeasurement', [luxDiagAttributes[key]]);
+    },
+};
 const pirDiagnostics = {
     cluster: 'msOccupancySensing',
     type: ['readResponse', 'attributeReport'],
@@ -72,9 +102,11 @@ export default {
         illuminance({reporting: {min: '10_SECONDS', max: '1_HOUR', change: 10}}),
         battery({voltage: true}),
     ],
-    fromZigbee: [pirDiagnostics],
-    toZigbee: [occupancyTimeout, diagRead],
+    fromZigbee: [pirDiagnostics, lightDiagnostics],
+    toZigbee: [occupancyTimeout, diagRead, luxDiagRead],
     exposes: [
+        ...Object.keys(luxDiagAttributes).map((name) => e.numeric(name, ea.STATE_GET)
+            .withDescription('Light diagnostic attribute; snapshot every ~60s or after ADC samples')),
         ...Object.keys(diagAttributes).map((name) => e.numeric(name, ea.STATE_GET)
             .withDescription('PVVX PIR diagnostic counter, full event snapshot and on-demand get')),
         e.numeric('occupancy_timeout', ea.ALL).withUnit('s')
