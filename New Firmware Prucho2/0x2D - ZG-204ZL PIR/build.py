@@ -20,7 +20,7 @@ TARGET = "prucho2_zg204zl_pir"
 HEADER_SOURCE = (SOURCE / "include/version_cfg.h").read_text(encoding="utf-8")
 
 def macro(name):
-    found = re.search(r"^#define\\s+" + name + r"\\s+0x([0-9A-Fa-f]+)", HEADER_SOURCE, re.M)
+    found = re.search(r"^#define\s+" + name + r"\s+0x([0-9A-Fa-f]+)", HEADER_SOURCE, re.M)
     if not found:
         raise ValueError(f"Firmware macro missing: {name}")
     return int(found.group(1), 16)
@@ -59,10 +59,10 @@ def main():
         today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d")
         date_header = (work / "src/include/sonoff_build_date.h")
         date_header.write_text(
-            "#ifndef SONOFF_BUILD_DATE_H\\n#define SONOFF_BUILD_DATE_H\\n"
+            "#ifndef SONOFF_BUILD_DATE_H\n#define SONOFF_BUILD_DATE_H\n"
             + "#define SONOFF_BUILD_DATE {8,"
             + ",".join(repr(ch) for ch in today)
-            + "}\\n#endif\\n", encoding="utf-8"
+            + "}\n#endif\n", encoding="utf-8"
         )
         # Override stale hardcoded name in the common Slacky makefile.
         subprocess.run(
