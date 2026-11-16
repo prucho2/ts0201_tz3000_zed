@@ -123,9 +123,6 @@ static int32_t occupancyTimerCb(void *arg) {
     return -1;
 }
 
-void prucho2_pir_note_wakeup(void) {
-    ++prucho2_diag_sleep_returns;
-}
 
 void prucho2_pir_init(void) {
     /* Same digital GPIO assignment as PVVX's ZG-204ZL board definition. */
