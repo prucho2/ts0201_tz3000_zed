@@ -24,6 +24,16 @@ void prucho2_pir_init(void);
 void prucho2_pir_task(void);
 void prucho2_pir_prepare_sleep(void);
 void prucho2_pir_request_sync(void);
+extern uint32_t prucho2_lux_diag_timer_ticks;
+extern uint32_t prucho2_lux_diag_samples;
+extern uint16_t prucho2_lux_diag_vbat_adc;
+extern uint16_t prucho2_lux_diag_pc4_adc;
+extern uint16_t prucho2_lux_diag_zcl;
+extern uint32_t prucho2_lux_diag_report_attempts;
+extern uint32_t prucho2_lux_diag_reports_enqueued;
+extern uint32_t prucho2_lux_diag_reports_failed;
+extern uint32_t prucho2_lux_diag_snapshots_enqueued;
+extern uint8_t prucho2_lux_diag_status;
 void prucho2_lux_init(void);
 void prucho2_lux_task(void);
 #endif
