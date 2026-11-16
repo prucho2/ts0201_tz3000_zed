@@ -10,6 +10,8 @@ Custom boards added to the [Slacky-DIY TS0201 Zigbee temperature and humidity fi
 | **0x2B** | **ZTH01, PCB 30201 0025-V2.0** | SHT30-compatible | **v7.0.02** | [Hardware, pinout and photo](0x2B%20-%20ZTH01%2030201%200025-V2.0/README.md) |
 | **0x2C** | **TS0201 AoYan** | GXHTV4 / SHT4x-compatible | **v7.0.04** | [Hardware, pinout and photos](0x2C%20-%20TS0201%20AoYan/README.md) |
 
+| **0x2D** | **ZG-204ZL PIR** (TLSR8253) | PIR PD4 + light PC4 | **v0.1.47 TEST — NOT WORKING** | [Independent PIR project, editable sources & build](0x2D%20-%20ZG-204ZL%20PIR/README.md) |
+
 These are **device/project names**, independent of the source-code identifiers used for builds. Existing board IDs, firmware versions, BIN and OTA contents are unchanged.
 
 Each project folder contains its current **.bin** (Telink BDT/SWS) and **.zigbee** (OTA image), plus detailed GPIO notes. Future experimental builds remain in [GitHub Actions](https://github.com/prucho2/ts0201_tz3000_zed/actions), without automatic replacement of these known-good archives.
@@ -21,7 +23,9 @@ All project photos are linked **directly to full-resolution images hosted by tel
 - **0x2A** has been flashed and verified on **two physically different boards**: SONOFF-SNZB-02-_TZ3000_fllyghyj (TLSR8258) and eWeLink CK-TLSR8656-SS5-01(7014) (TLSR8656F512).
 - Back up the original flash and factory IEEE/calibration data before flashing via SWS.
 - OTA images have distinct image types **0x022A / 0x022B / 0x022C**; validate manufacturer and image type before OTA.
-- The **ZG-227Z / ZG-227ZS (AHT20)** already has a matching original Slacky-DIY profile **0x23** and does not need a duplicate here.
+- > **0x2D is an experimental project and not a verified image.** It has a dedicated source directory and GitHub Actions build; its source is only on the test branch until validated.
+
+The **ZG-227Z / ZG-227ZS (AHT20)** already has a matching original Slacky-DIY profile **0x23** and does not need a duplicate here.
 
 ## Source code and builds
 
