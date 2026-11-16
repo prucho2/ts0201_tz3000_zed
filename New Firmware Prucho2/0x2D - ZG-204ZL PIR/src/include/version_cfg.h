@@ -50,7 +50,7 @@
 
 #if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
 #define APP_RELEASE                         0x01
-#define APP_BUILD                           0x47  /* v0.1.47: original 1.41 base, PVVX PIR, full diagnostics */
+#define APP_BUILD                           0x48  /* v0.1.48: independent light ADC and ZCL diagnostic snapshot */
 #elif (BOARD == BOARD_SONOFF_SNZB02_CHT8305)
 #define APP_RELEASE                         0x70        // custom Sonoff: v7.0
 #define APP_BUILD                           0x02        // custom Sonoff: v7.0.02
