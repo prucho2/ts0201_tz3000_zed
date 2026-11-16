@@ -18,7 +18,7 @@
 | `src/include/app_pir_prucho2.h` | Deklaracje funkcji i diagnostyki |
 | `zigbee2mqtt/prucho2_pir_zg204zl.mjs` | Konwerter Z2M; to nie jest część pliku BIN |
 | `build.py` | Samodzielna kompilacja wyłącznie z plików tego projektu |
-| `bin/` | Miejsce na wyniki BIN i Zigbee OTA, tworzone przez build; nie publikuje automatycznie na produkcję |
+| `bin/` | **Gotowe obrazy BIN i Zigbee OTA**, automatycznie zapisywane do repozytorium po udanej kompilacji w GitHub Actions; tylko TEST |
 
 ## Jak samodzielnie zmieniać kod?
 
@@ -27,7 +27,7 @@
 3. Przejdź do **Actions → PIR 0x2D - Build from project folder**. Możesz użyć **Run workflow** (wybierz gałąź `dev/prucho2-pir-pvvx-v141-baseline`), lub poczekać na automatyczną kompilację po zmianie pliku `src/`.
 4. Otwórz zakończony run, na dole strony w **Artifacts → PIR-0x2D-test-build** pobierzesz paczkę z plikami BIN i Zigbee OTA.
 
-**Ważne:** nową wersję firmware podnieś w `src/include/version_cfg.h` w sekcji `BOARD_PRUCHO2_PIR_ZG204ZL` (np. po 0x47 kolejne 0x48). `build.py` sam odczytuje numer i nazywa pliki. Nie trzeba zmieniać `makefile` ani workflow.
+**Ważne:** po udanym GitHub Actions buildzie trzy obrazy są też widoczne w tym folderze `bin/`, bez osobnego pobierania Artifacts. Nową wersję firmware podnieś w `src/include/version_cfg.h` w sekcji `BOARD_PRUCHO2_PIR_ZG204ZL` (np. po 0x47 kolejne 0x48). `build.py` sam odczytuje numer i nazywa pliki. Nie trzeba zmieniać `makefile` ani workflow.
 
 ## Budowanie lokalne
 
@@ -37,7 +37,7 @@ Z komputera z Python 3, GNU Make i kompilatorem Telink TC32 (ścieżka `/opt/tc3
 python3 "New Firmware Prucho2/0x2D - ZG-204ZL PIR/build.py"
 ```
 
-Skrypt kopiuje projekt do katalogu tymczasowego, nakłada pliki z tego katalogu na wspólne źródła Slacky, kompiluje, sprawdza numer obrazu, zgodność plików, CRC32 i tworzy `bin/` **tylko w katalogu PIR**. Na Windows najprościej korzystać z GitHub Actions bez lokalnego toolchaina.
+Skrypt kopiuje projekt do katalogu tymczasowego, nakłada pliki z tego katalogu na wspólne źródła Slacky, kompiluje, sprawdza numer obrazu, zgodność plików, CRC32 i tworzy `bin/` **tylko w katalogu PIR**. GitHub Actions dodatkowo commituje te obrazy do repozytorium; lokalny build zapisuje je tylko lokalnie. Na Windows najprościej korzystać z GitHub Actions bez lokalnego toolchaina.
 
 ## Architektura i bezpieczeństwo
 
