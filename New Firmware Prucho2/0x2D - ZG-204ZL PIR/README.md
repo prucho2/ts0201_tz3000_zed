@@ -153,3 +153,13 @@ PVVX prucho2/ZigbeeTLc-PIR src/sensor_pir.c: gpio_read(GPIO_PIR) = GPIO_PD4, act
 - W v0.1.56 zmieniono odczyt na porównanie znormalizowanych poziomów: `(drv_gpio_read(PRUCHO2_PIR_GPIO) != 0) == (PRUCHO2_PIR_ACTIVE_LEVEL != 0)`.
 - Pozostałe części v0.1.55 bez zmian: kompletna inicjalizacja GPIO PVVX, 24 MHz, brak snu (wersja testowa), rejestry diagnostyczne, światło i konwerter Z2M v0.1.54.
 - Po wgraniu sprawdzić wzrost `pir_high_samples`, `pir_rising_edges`, przełączanie `occupancy` i timer wyłączenia. To najpierw test, dopiero po potwierdzeniu przywrócić oszczędzanie energii.
+
+
+## Test v0.1.57 — powrót do Slacky-DIY i 48 MHz
+
+- Przywrócono **48 MHz**, oryginalny zegar platformy Slacky TLSR8258; brak specjalnego zegara 24 MHz dla PIR.
+- Zrezygnowano z podmiany sterownika `tl_zigbee_sdk/proj/drivers/drv_hw.c` na funkcję `_gpio_init` z PVVX: skrypt `build.py` używa ponownie **oryginalnego `drv_hw.c` Slacky i jego `gpio_init(TRUE)`**. Historyczna kopia `src/patch/drv_hw.c` pozostaje wyłącznie do analizy i nie uczestniczy w kompilacji.
+- Przywrócono normalny tryb oszczędzania energii (usunięto tymczasowe `return` blokujące sleep). Zachowany mechanizm wybudzania PD4 przygotowywany bezpośrednio przed snem zgodnie ze stylem Slacky TS0207 (czujnik zalania), także przycisk PA1.
+- Zachowano **krytyczną poprawkę ruchu** z v0.1.56: normalizacja `drv_gpio_read(GPIO_PD4) != 0`; bez niej HIGH o wartości maski `0x10` było interpretowane jako LOW.
+- Bez zmian w implementacji pomiaru światła: ADC co 2s, raport przy zmianie >=20 lx lub po 30s; diagnostyka światła co 15s, PIR i rejestry co ok. 10s; dotychczasowy konwerter Z2M nadal pasuje.
+- To test powrotu do Slacky, nie jeszcze finalna konfiguracja baterii. Szczególnie testować wybudzanie na ruch po kilkunastu sekundach bezczynności, licznik pir_sleep_returns, zdarzenia occupancy i pomiar światła po sleep.
