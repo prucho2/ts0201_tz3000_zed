@@ -9,7 +9,7 @@
  * timer checks PIR again, stays occupied while HIGH, clears after LOW;
  * arm GPIO wake against the sampled electrical PD4 level in every task pass.
  */
-#define PRUCHO2_PIR_DIAG_MIN_MS 5000UL
+#define PRUCHO2_PIR_DIAG_PERIOD_MS 10000UL
 
 static bool raw_high = false;
 static bool occupancy_pending = false;
@@ -70,13 +70,12 @@ static void report_occupancy(void) {
     }
 }
 
-/* Full 11-field event snapshot from the previously working v0.1.44 diagnostic.
- * One ZCL command; initial snapshot and snapshots on PD4 transitions.
- * No periodic diagnostic traffic when there are no transitions.
+/* Full 11-field diagnostic snapshot every 10 seconds while joined.
+ * Transitions still trigger an early snapshot, at most once per interval.
  */
 static void report_diagnostics(void) {
-    if (!diag_pending || !zb_isDeviceJoinedNwk()) return;
-    if (diag_sent_once && !clock_time_exceed(diag_last_sent, PRUCHO2_PIR_DIAG_MIN_MS * 1000UL)) return;
+    if (!zb_isDeviceJoinedNwk()) return;
+    if (diag_sent_once && !clock_time_exceed(diag_last_sent, PRUCHO2_PIR_DIAG_PERIOD_MS * 1000UL)) return;
     struct {
         u8 numAttr;
         zclReport_t attr[11];
