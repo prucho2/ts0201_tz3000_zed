@@ -78,7 +78,10 @@
 
 <img src="doc/images/reporting.jpg"/>
 
-## Как обновить. 
+## Как обновить.
+
+> **Prucho2 — aktualne projekty i migracje PVVX:** [katalog, dokumentacja i profile OTA](New%20Firmware%20Prucho2/README.md). W szczególności: [ZG-227Z-z PVVX 0.1.40 → Slacky-DIY 0x23](New%20Firmware%20Prucho2/0x23%20-%20ZG-227Z%20PVVX%20to%20Slacky-DIY/README.md), [ZG-204ZL PIR PVVX → Prucho2 0x2D](New%20Firmware%20Prucho2/0x2D%20-%20ZG-204ZL%20PIR/ota-from-pvvx/README.md). Pakiety przejściowe mają osobny nagłówek OTA i wymagają weryfikacji urządzenia przed wgraniem.
+ 
 <details>
     <summary>Раскрыть</summary>
 

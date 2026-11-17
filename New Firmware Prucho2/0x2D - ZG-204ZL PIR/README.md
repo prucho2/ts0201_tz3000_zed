@@ -2,23 +2,23 @@
 
 **To jest samodzielny katalog źródeł do budowania PIR-a.** Nie musisz szukać zmian w głównych plikach `src/` repozytorium.
 
-**Status v0.1.49: eksperymentalny, PIR (PD4) nadal wymaga testu na sprzęcie; światło było potwierdzone w v0.1.48.** Poprawna kompilacja nie oznacza działającego urządzenia. To nie jest wersja produkcyjna.
+**Stan aktualny: v0.1.58 skompilowany, testowo wgrany; migracja PVVX → Prucho2 OTA potwierdzona na czujniku TEST.** PIR, wybudzanie i powrót occupancy potwierdzone na wcześniejszej wersji v0.1.57. Nowa konfiguracja lux/bez diagnostyki v0.1.58 wymaga zwykłej obserwacji baterii i raportowania.
 
 ## Co gdzie jest?
 
 | Ścieżka w tym folderze | Do czego służy |
 |---|---|
 | `src/common/board_zg204zl_pir_prucho2.h` | **Piny sprzętowe**: PIR PD4, fotoczujnik PC4, zasilanie światła PD3, LED PD7, przycisk PA1 |
-| `src/app_pir_prucho2.c` | **PIR**: odczyt GPIO, Occupancy, podtrzymanie ruchu, wybudzanie, pełne 11 liczników diagnostycznych |
-| `src/app_pir_lux_prucho2.c` | **Światło**: pomiar ADC i warunki raportowania; obecnie kod z firmware 0.1.41 |
+| `src/app_pir_prucho2.c` | **PIR**: znormalizowany odczyt GPIO PD4, occupancy, podtrzymanie 3 s domyślnie, wybudzanie; diagnostyka usunięta |
+| `src/app_pir_lux_prucho2.c` | **Światło**: niezależny timer 20 s, raport przy zmianie o >=20 lx lub co 300 s, bez wyzwalania przez ruch |
 | `src/app_pm.c` | Zasypianie i wybudzanie |
 | `src/app_main.c` | Inicjalizacja i pętla programu |
 | `src/app_endpoint_cfg.c` | Klastry i atrybuty Zigbee, w tym Illuminance i Occupancy |
 | `src/include/version_cfg.h` | **Numer wersji firmware (PIR `APP_BUILD`)** |
-| `src/include/app_pir_prucho2.h` | Deklaracje funkcji i diagnostyki |
+| `src/include/app_pir_prucho2.h` | Deklaracje funkcji PIR i lux (bez atrybutów diagnostycznych) |
 | `zigbee2mqtt/prucho2_pir_zg204zl.mjs` | Konwerter Z2M; to nie jest część pliku BIN |
 | `build.py` | Samodzielna kompilacja wyłącznie z plików tego projektu |
-| `bin/` | **Gotowe obrazy BIN i Zigbee OTA**, automatycznie zapisywane do repozytorium po udanej kompilacji w GitHub Actions; tylko TEST |
+| `bin/` | **Gotowe obrazy BIN i standardowe Zigbee OTA**, automatycznie zapisywane do repozytorium po udanej kompilacji w GitHub Actions |
 
 ## Jak samodzielnie zmieniać kod?
 
@@ -165,7 +165,7 @@ PVVX prucho2/ZigbeeTLc-PIR src/sensor_pir.c: gpio_read(GPIO_PIR) = GPIO_PD4, act
 - To test powrotu do Slacky, nie jeszcze finalna konfiguracja baterii. Szczególnie testować wybudzanie na ruch po kilkunastu sekundach bezczynności, licznik pir_sleep_returns, zdarzenia occupancy i pomiar światła po sleep.
 
 
-## Planned v0.1.58 — clean operating configuration (NOT BUILT)
+## v0.1.58 — konfiguracja użytkowa (zbudowana, CRC sprawdzone)
 
 - Slacky 48 MHz, original `gpio_init`, normal sleep/wake on PD4, GPIO bitmask fix from v0.1.56 retained.
 - PIR occupancy default 3 seconds (standard attribute `pirOToUDelay`, writable 1–600 s). It was already initialized as 3 s in v0.1.57.
@@ -173,4 +173,30 @@ PVVX prucho2/ZigbeeTLc-PIR src/sensor_pir.c: gpio_read(GPIO_PIR) = GPIO_PD4, act
 - Light report when measured light differs by **20 lx** from last reported measurement, plus periodic report every **300 s**. First report on boot/network join. Retries if sending fails.
 - Removed firmware diagnostic counters, special ZCL attributes F100–F110 and F200–F209, raw GPIO register snapshots and periodic diagnostic radio traffic. Standard occupancy and illuminance reporting preserved.
 - External Zigbee2MQTT converter removes diagnostic exposes/getters and keeps occupancy, illuminance, battery and configurable occupancy_timeout.
-- Source-only commit marked `[skip ci]` at user's request; do NOT build until explicitly approved. Existing last built binary is 0.1.57.
+- Build GitHub Actions zakończony sukcesem: **v0.1.58, BIN 152324 B, OTA 152386 B, Telink CRC32 0x69402EEF**.
+- Pakiet migracyjny PVVX (zewnętrzne OTA 1141/0232) wygenerowany i rzeczywiście przyjęty przez czujnik TEST; po Interview Zigbee2MQTT poprawnie rozpoznał model Prucho2.
+- Obrazek urządzenia w Z2M: `https://www.zigbee2mqtt.io/images/devices/ZG-204ZL-z.png` (ustawiany jako ikona danego urządzenia, nie jako właściwość konwertera).
+- **Historia v0.1.49–0.1.57 powyżej opisuje dawne wersje diagnostyczne, nie aktualne firmware.**
+
+
+## Aktualna eksploatacja i migracja PVVX — v0.1.58
+
+| Ustawienie | Obecnie |
+|---|---|
+| CPU/SDK | Slacky 48 MHz, oryginalna inicjalizacja GPIO i sleep/wake |
+| Wejście PIR | PD4, normalizacja maski GPIO (HIGH = 0x10) |
+| Occupancy timeout | **3 s** domyślnie, ZCL `pirOToUDelay` 1–600 s |
+| Pomiar lux | **Co 20 s**, niezależny timer ADC PC4 / zasilanie PD3 |
+| Raport zmian | **Od różnicy 20 lx** względem ostatnio zaraportowanego odczytu |
+| Raport okresowy lux | **300 s** od ostatniego raportu |
+| Dodatkowy pomiar przy ruchu | **Nie** |
+| Diagnostyka | Usunięto ZCL F100–F110, F200–F209 i okresowe migawki GPIO |
+| Sensor światła nieobsadzony | Jedno firmware, **0 lx** bez fotoczujnika |
+| Model ID | `Prucho2-PIR-z`, manufacturer `Slacky-DIY` |
+| OTA zwykłe po migracji | `6565/022D` |
+| OTA przejściowe z PVVX | `1141/0232`, [instrukcja i plik](ota-from-pvvx/README.md) |
+| Ikona Z2M | `https://www.zigbee2mqtt.io/images/devices/ZG-204ZL-z.png` |
+
+Przy pierwszej instalacji z PVVX po udanym OTA Z2M może nadal wyświetlać stary model: **wykonaj Interview** z wybudzeniem czujnika. Nie trzeba resetować całego HA.
+
+Szczegóły formatów migracyjnych: [OTA_MIGRATION_SPEC.md](../OTA_MIGRATION_SPEC.md).

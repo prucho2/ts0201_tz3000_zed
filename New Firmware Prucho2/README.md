@@ -1,38 +1,48 @@
-# New Firmware Prucho2
+# New Firmware Prucho2 — katalog sprzętu i migracji OTA
 
-Custom boards added to the [Slacky-DIY TS0201 Zigbee temperature and humidity firmware](https://github.com/slacky1965/ts0201_tz3000_zed), with GPIO traced using a multimeter and verified on real hardware.
+Własne wersje firmware bazujące na [Slacky-DIY](https://github.com/slacky1965/ts0201_tz3000_zed)
+oraz migracje oryginalnych urządzeń PVVX. **Wersja kodu, wersja BIN i OTA
+to trzy różne rzeczy**; nagłówek OTA dla migracji PVVX może mieć inne
+identyfikatory niż wewnętrzny obraz nowego firmware.
 
-## Hardware projects
+## Projekty
 
-| Board | Supported device(s) | Sensor/driver | Current firmware | Details |
-|---|---|---|---|---|
-| **0x2A** | **SONOFF-SNZB-02-_TZ3000_fllyghyj** and **eWeLink CK-TLSR8656-SS5-01(7014)** — **one shared firmware for both** | CHT8305 | **v7.0.02** | [Hardware, pinout and photos](0x2A%20-%20SONOFF-SNZB-02-_TZ3000_fllyghyj%20%2B%20eWeLink%207014/README.md) |
-| **0x2B** | **ZTH01, PCB 30201 0025-V2.0** | SHT30-compatible | **v7.0.02** | [Hardware, pinout and photo](0x2B%20-%20ZTH01%2030201%200025-V2.0/README.md) |
-| **0x2C** | **TS0201 AoYan** | GXHTV4 / SHT4x-compatible | **v7.0.04** | [Hardware, pinout and photos](0x2C%20-%20TS0201%20AoYan/README.md) |
+| Profil | Urządzenie | Firmware / sterownik | Dokumentacja |
+|---|---|---|---|
+| `0x2A` | SONOFF SNZB-02 oraz eWeLink 7014 | Prucho2 v7.0.02, CHT8305 | [0x2A](./0x2A%20-%20SONOFF-SNZB-02-_TZ3000_fllyghyj%20%2B%20eWeLink%207014/README.md) |
+| `0x2B` | ZTH01 PCB 30201 0025-V2.0 | Prucho2 v7.0.02, SHT30 | [0x2B](./0x2B%20-%20ZTH01%2030201%200025-V2.0/README.md) |
+| `0x2C` | TS0201 AoYan | Prucho2 v7.0.04, GXHTV4/SHT4x | [0x2C](./0x2C%20-%20TS0201%20AoYan/README.md) |
+| `0x2D` | ZG-204ZL PIR (TLSR8253) | **Prucho2 v0.1.58**, PIR PD4 + opcjonalny lux PC4 | [Specyfikacja 0x2D](./0x2D%20-%20ZG-204ZL%20PIR/README.md) |
+| `0x23` (oryginalny Slacky) | ZG-227Z-z PVVX, termometr/wilgotnościomierz | **Slacky-DIY v1.0.10**, AHT20; bez nowych źródeł firmware | [Migracja PVVX → Slacky 0x23](./0x23%20-%20ZG-227Z%20PVVX%20to%20Slacky-DIY/README.md) |
 
-| **0x2D** | **ZG-204ZL PIR** (TLSR8253) | PIR PD4 + light PC4 | **v0.1.47 TEST — NOT WORKING** | [Independent PIR project, editable sources & build](0x2D%20-%20ZG-204ZL%20PIR/README.md) |
+Profil 0x23 nie jest nową płytką Prucho2; używamy **istniejącego upstream Slacky-DIY**.
+Dla 0x23 mamy w repo oryginalny [BIN](../bin/ts0201_tz3000_0x23_zed_last_version.bin)
+i [OTA Slacky](../bin/6565-0223-10103001-ts0201_tz3000_0x23_zed.zigbee).
 
-These are **device/project names**, independent of the source-code identifiers used for builds. Existing board IDs, firmware versions, BIN and OTA contents are unchanged.
+## Aktualizacje PVVX — ważne rozróżnienie
 
-Each project folder contains its current **.bin** (Telink BDT/SWS) and **.zigbee** (OTA image), plus detailed GPIO notes. Future experimental builds remain in [GitHub Actions](https://github.com/prucho2/ts0201_tz3000_zed/actions), without automatic replacement of these known-good archives.
+| Źródło | Docelowy firmware | Nagłówek migracyjny OTA | Status |
+|---|---|---|---|
+| ZG-204ZL z PVVX 0.1.40 | Prucho2 0x2D v0.1.58 | `1141/0232/01583001` | **OTA przeszło na czujniku TEST; po Interview Z2M rozpoznał nowy model** |
+| ZG-227Z-z z PVVX 0.1.40 | Oryginalny Slacky-DIY 0x23 v1.0.10 | `1141/0227/10103001` | **Pakiet przygotowany, fizycznie nieprzetestowany** |
 
-All project photos are linked **directly to full-resolution images hosted by telsim.pl** (not stored as small copies in GitHub).
+- [PIR: pakiet i instrukcja migracji](./0x2D%20-%20ZG-204ZL%20PIR/ota-from-pvvx/README.md)
+- [ZG-227Z: pakiet i instrukcja migracji](./0x23%20-%20ZG-227Z%20PVVX%20to%20Slacky-DIY/README.md)
+- [Specyfikacja i bezpieczeństwo migracji](./OTA_MIGRATION_SPEC.md)
 
-## Compatibility and programming
+**Przed wgrywaniem**: potwierdzić obraz OTA (manufacturer, image type i file version),
+wariant PCB, typ czujnika I²C, zapisać pełny backup Flash. Nie przenosić
+po prostu nagłówka OTA pomiędzy różnymi modelami.
 
-- **0x2A** has been flashed and verified on **two physically different boards**: SONOFF-SNZB-02-_TZ3000_fllyghyj (TLSR8258) and eWeLink CK-TLSR8656-SS5-01(7014) (TLSR8656F512).
-- Back up the original flash and factory IEEE/calibration data before flashing via SWS.
-- OTA images have distinct image types **0x022A / 0x022B / 0x022C**; validate manufacturer and image type before OTA.
-- > **0x2D is an experimental project and not a verified image.** It has a dedicated source directory and GitHub Actions build; its source is only on the test branch until validated.
+## Budowanie i bezpieczeństwo
 
-The **ZG-227Z / ZG-227ZS (AHT20)** already has a matching original Slacky-DIY profile **0x23** and does not need a duplicate here.
-
-## Source code and builds
-
-| Board | GPIO profile in source | Build workflow |
-|---|---|---|
-| 0x2A | [board_sonoff_snzb02_cht8305.h](../src/common/board_sonoff_snzb02_cht8305.h) | [Sonoff build](../.github/workflows/build-sonoff.yml) |
-| 0x2B | [board_zth01_jq_v20.h](../src/common/board_zth01_jq_v20.h) | [ZTH01 build](../.github/workflows/build-zth01.yml) |
-| 0x2C | [board_gxhtv4_pc2pc3.h](../src/common/board_gxhtv4_pc2pc3.h) | [AoYan build (GXHTV4 board profile)](../.github/workflows/build-gxhtv4.yml) |
-
-BIN/OTA archiving is manual through [archive-prucho2-firmware.yml](../.github/workflows/archive-prucho2-firmware.yml) and does not run for each new build.
+- PIR 0x2D jest oddzielnym projektem z własnym `src/`, `build.py`, `bin/`,
+  konwerterem Z2M i automatyczną kompilacją przez GitHub Actions.
+- Firmware 0x2D v0.1.58 ma CPU 48 MHz; domyślny occupancy timeout **3 s**,
+  lux co **20 s**, raport przy zmianie **20 lx** lub po **300 s**,
+  bez dodatkowego pomiaru przy ruchu; diagnostyka programowa została usunięta.
+- Kontener OTA **nie jest** programem do uruchamiania: zawiera kompletny BIN,
+  którego nagłówka Telink/CRC nie wolno zmieniać.
+- Obecne firmware 0x2A, 0x2B, 0x2C i 0x2D nie są przebudowywane
+  przy generowaniu jednorazowych obrazów migracyjnych.
+- Nie restartować HA MAIN bez wyraźnej zgody użytkownika.
