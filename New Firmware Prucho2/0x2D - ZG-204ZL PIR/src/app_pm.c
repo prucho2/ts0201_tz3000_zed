@@ -19,7 +19,7 @@ void app_pm_lowPowerEnter(void) {
 #endif
 
 #if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
-    prucho2_pir_prepare_sleep();
+    if (prucho2_pir_idle()) return;
 #endif
     u32 r = drv_disable_irq();
 
@@ -56,6 +56,10 @@ void app_pm_lowPowerEnter(void) {
     }
 #endif
 
+    /* Slacky TS0207 pattern: set wake pad polarity just before sleep. */
+#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+    prucho2_pir_prepare_sleep();
+#endif
     if(!longSleep){
         drv_pm_sleep(sleepMode, wakeupSrc, sleepTime);
     }else{
