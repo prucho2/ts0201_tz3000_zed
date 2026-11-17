@@ -119,3 +119,18 @@ PVVX prucho2/ZigbeeTLc-PIR src/sensor_pir.c: gpio_read(GPIO_PIR) = GPIO_PD4, act
 **Nierozstrzygnięta różnica GPIO:** PVVX używa niestandardowego _gpio_init(TRUE) z src/patch_z_sdk/hw_drv.c, a nie oryginalnego gpio_init(TRUE) SDK Slacky. PVVX bezpośrednio wpisuje reg_gpio_pd_setting1 oraz reg_gpio_pd_setting2 w drv_platform_init (również po retention wake). Nadal nie sprawdziliśmy rzeczywistej konfiguracji portu PD4 po uruchomieniu i po wybudzeniach (reg_gpio_pd_ie, reg_gpio_pd_oen, reg_gpio_pd_gpio, reg_gpio_pd_in). Zgodne makra nie dowodzą zgodnej rzeczywistej konfiguracji.
 
 **Następny uzasadniony test — jeszcze nie wykonany:** jedna wersja diagnostyczna, bez deep sleep, z ciągłym odczytem PD4 i snapshotem bezpośrednich rejestrów GPIO oraz pozostawionymi ADC i raportami światła. Pozwoli rozróżnić złą konfigurację pinu, stały poziom LOW mimo poprawnej konfiguracji oraz wpływ snu. Alternatywny test powrotu do PVVX 0.1.40 na tej samej płytce może ponownie potwierdzić zachowanie elektroniki bez miernika.
+
+## Test v0.1.54 — bez snu, surowe rejestry GPIO PD4
+
+- Test tylko dla płytki 0x2D: app_pm_lowPowerEnter() natychmiast wraca bez deep sleep/retention. Wysoki pobór prądu — do testów na programatorze.
+- Ciągły odczyt PD4 w pętli aplikacji, bez zmian logiki occupancy i światła.
+- Nowe atrybuty klastra msOccupancySensing, raportowane co około 10 sekund w osobnej ramce:
+  - 0xF10B pir_pd_in = reg_gpio_pd_in
+  - 0xF10C pir_pd_ie = reg_gpio_pd_ie
+  - 0xF10D pir_pd_oen = reg_gpio_pd_oen
+  - 0xF10E pir_pd_gpio = reg_gpio_pd_gpio
+  - 0xF10F pir_pd_out = reg_gpio_pd_out
+  - 0xF110 pir_pd_irq_en = reg_gpio_pd_irq_en
+- PD4 ma maskę bitową 16: PD IE bit4 = 1, PD OEN bit4 = 1 (wyjście wyłączone; active low), PD GPIO bit4 = 1. PD IN bit4 odzwierciedla stan wejścia.
+- Nowy konwerter z tego folderu trzeba skopiować do instalacji Z2M i przeładować konwerter (może wymagać restartu samego Z2M); nie restartować HA MAIN bez zgody.
+- pir_sleep_returns ma pozostać 0; to diagnostyka sprzętowych rejestrów, nie poprawka produkcyjna.
