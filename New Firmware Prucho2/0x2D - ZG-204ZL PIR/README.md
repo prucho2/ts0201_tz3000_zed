@@ -163,3 +163,14 @@ PVVX prucho2/ZigbeeTLc-PIR src/sensor_pir.c: gpio_read(GPIO_PIR) = GPIO_PD4, act
 - Zachowano **krytyczną poprawkę ruchu** z v0.1.56: normalizacja `drv_gpio_read(GPIO_PD4) != 0`; bez niej HIGH o wartości maski `0x10` było interpretowane jako LOW.
 - Bez zmian w implementacji pomiaru światła: ADC co 2s, raport przy zmianie >=20 lx lub po 30s; diagnostyka światła co 15s, PIR i rejestry co ok. 10s; dotychczasowy konwerter Z2M nadal pasuje.
 - To test powrotu do Slacky, nie jeszcze finalna konfiguracja baterii. Szczególnie testować wybudzanie na ruch po kilkunastu sekundach bezczynności, licznik pir_sleep_returns, zdarzenia occupancy i pomiar światła po sleep.
+
+
+## Planned v0.1.58 — clean operating configuration (NOT BUILT)
+
+- Slacky 48 MHz, original `gpio_init`, normal sleep/wake on PD4, GPIO bitmask fix from v0.1.56 retained.
+- PIR occupancy default 3 seconds (standard attribute `pirOToUDelay`, writable 1–600 s). It was already initialized as 3 s in v0.1.57.
+- Light sample every **20 s** using independent Zigbee event timer, **not** motion-triggered.
+- Light report when measured light differs by **20 lx** from last reported measurement, plus periodic report every **300 s**. First report on boot/network join. Retries if sending fails.
+- Removed firmware diagnostic counters, special ZCL attributes F100–F110 and F200–F209, raw GPIO register snapshots and periodic diagnostic radio traffic. Standard occupancy and illuminance reporting preserved.
+- External Zigbee2MQTT converter removes diagnostic exposes/getters and keeps occupancy, illuminance, battery and configurable occupancy_timeout.
+- Source-only commit marked `[skip ci]` at user's request; do NOT build until explicitly approved. Existing last built binary is 0.1.57.

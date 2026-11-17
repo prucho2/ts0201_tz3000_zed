@@ -1,46 +1,14 @@
 #ifndef PRUCHO2_APP_PIR_H_
 #define PRUCHO2_APP_PIR_H_
-/*
- * Slacky-based ZG-204ZL PIR motion module, independent from lux measurement.
- * Development-only. See docs/PRUCHO2_PIR_ZG204ZL_DEVELOPMENT.md.
- */
+/* ZG-204ZL PIR + independent lux; Slacky platform. */
 extern uint8_t prucho2_occupancy;
 extern uint16_t prucho2_occupancy_hold;
 extern uint16_t prucho2_lux;
-/* v0.1.42 read-only ZCL diagnostics on occupancy cluster 0x0406. */
-extern uint8_t prucho2_diag_raw_gpio;
-extern uint32_t prucho2_diag_rising_edges;
-extern uint32_t prucho2_diag_falling_edges;
-extern uint32_t prucho2_diag_reports_requested;
-extern uint32_t prucho2_diag_reports_enqueued;
-extern uint32_t prucho2_diag_reports_retries;
-extern uint32_t prucho2_diag_timer_checks;
-extern uint32_t prucho2_diag_gpio_high_samples;
-extern uint32_t prucho2_diag_gpio_low_samples;
-extern uint32_t prucho2_diag_sleep_returns;
-extern uint32_t prucho2_diag_poll_samples;
-extern uint8_t prucho2_diag_pd_in;
-extern uint8_t prucho2_diag_pd_ie;
-extern uint8_t prucho2_diag_pd_oen;
-extern uint8_t prucho2_diag_pd_gpio;
-extern uint8_t prucho2_diag_pd_out;
-extern uint8_t prucho2_diag_pd_irq_en;
-void prucho2_pir_note_wakeup(void);
 void prucho2_pir_init(void);
 void prucho2_pir_task(void);
 void prucho2_pir_prepare_sleep(void);
 bool prucho2_pir_idle(void);
 void prucho2_pir_request_sync(void);
-extern uint32_t prucho2_lux_diag_timer_ticks;
-extern uint32_t prucho2_lux_diag_samples;
-extern uint16_t prucho2_lux_diag_vbat_adc;
-extern uint16_t prucho2_lux_diag_pc4_adc;
-extern uint16_t prucho2_lux_diag_zcl;
-extern uint32_t prucho2_lux_diag_report_attempts;
-extern uint32_t prucho2_lux_diag_reports_enqueued;
-extern uint32_t prucho2_lux_diag_reports_failed;
-extern uint32_t prucho2_lux_diag_snapshots_enqueued;
-extern uint8_t prucho2_lux_diag_status;
 void prucho2_lux_init(void);
 void prucho2_lux_task(void);
 #endif

@@ -50,7 +50,7 @@
 
 #if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
 #define APP_RELEASE                         0x01
-#define APP_BUILD                           0x57  /* v0.1.57: Slacky 48MHz GPIO/PM, retain PIR fix and lux */
+#define APP_BUILD                           0x58  /* v0.1.58: 20s lux, 300s sync, no diagnostics */
 #elif (BOARD == BOARD_SONOFF_SNZB02_CHT8305)
 #define APP_RELEASE                         0x70        // custom Sonoff: v7.0
 #define APP_BUILD                           0x02        // custom Sonoff: v7.0.02
