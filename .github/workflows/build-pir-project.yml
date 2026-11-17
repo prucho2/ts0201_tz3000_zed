@@ -10,6 +10,10 @@ on:
       - 'New Firmware Prucho2/0x2D - ZG-204ZL PIR/build.py'
       - '.github/workflows/build-pir-project.yml'
 
+concurrency:
+  group: pir-0x2d-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
