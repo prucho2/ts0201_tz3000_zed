@@ -23,6 +23,7 @@ void prucho2_pir_note_wakeup(void);
 void prucho2_pir_init(void);
 void prucho2_pir_task(void);
 void prucho2_pir_prepare_sleep(void);
+bool prucho2_pir_idle(void);
 void prucho2_pir_request_sync(void);
 extern uint32_t prucho2_lux_diag_timer_ticks;
 extern uint32_t prucho2_lux_diag_samples;
