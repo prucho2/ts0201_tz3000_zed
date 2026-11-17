@@ -75,5 +75,5 @@ Interpretacja: jeśli `lux_timer_ticks` przyrasta, lecz `lux_samples` nie — pr
 
 - PIR: według Slacky TS0207 czujnika zalania aktualizacja polaryzacji wybudzania PAD obu pinów PA1 i PD4 tuż przed wejściem w sleep; przy zmianie PD4 krótkie podtrzymanie aktywnego CPU na 3 kontrole po 5 ms. Zdarzenie occupancy nie czeka na zakończenie tych kontroli. 11 istniejących pól diagnostycznych pozostaje bez zmian. To test, nie potwierdzona naprawa.
 - Lux: pomiar ADC co 2 sekundy; raport gdy zmiana o >=20 **rzeczywistych luksów** względem ostatnio zgłoszonego stanu; raport wymuszony po 30 sekundach od ostatniego zgłoszenia; każde zaakceptowane przez stos zgłoszenie resetuje 30-sekundowe odliczanie. Wysyłka 30-sekundowa dotyczy zwykłego illuminance, niezależna telemetria diagnostyczna pozostaje co 60 sekund.
-- Skorygowano arytmetykę stałoprzecinkową pomiaru lux i konwersji logarytmicznej do używania pośrednich mnożeń 64-bitowych, aby uniknąć 32-bitowego przepełnienia. To może zmienić wartości lux; porównać z rzeczywistymi warunkami.
+- Skorygowano arytmetykę stałoprzecinkową pomiaru lux do bezpiecznej 32-bitowej skali Q12, kompatybilnej z kompilatorem TC32 (nie wymaga 64-bitowych funkcji runtime). To może zmienić wartości lux; porównać z rzeczywistymi warunkami.
 - Przed testem potwierdzić poprawną kompilację pliku bin i CRC32 w GitHub Actions; nie restartować HA MAIN.
