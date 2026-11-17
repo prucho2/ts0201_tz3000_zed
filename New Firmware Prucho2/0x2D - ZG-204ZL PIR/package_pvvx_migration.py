@@ -25,7 +25,7 @@ PVVX_040_VERSION = 0x01403001
 def main():
     fw = FW_PATH.read_bytes()
     assert 0 < len(fw) < 0x36000, "FW size outside 512-KB PVVX layout safety envelope"
-    assert fw[6:8] == b"\x5d\\x02", "Not an OTA-compatible Telink application"
+    assert fw[6:8] == b"\x5d\x02", "Not an OTA-compatible Telink application"
     assert fw[8:12] == b"KNLT", "Missing Telink bootable marker"
     internal_ver = int.from_bytes(fw[2:6], "little")
     internal_mfr = int.from_bytes(fw[18:20], "little")
