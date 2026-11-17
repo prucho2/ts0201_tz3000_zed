@@ -144,3 +144,12 @@ PVVX prucho2/ZigbeeTLc-PIR src/sensor_pir.c: gpio_read(GPIO_PIR) = GPIO_PD4, act
 - Celowo pozostawiono **bez snu** i diagnostykę rejestrów PD4 z v0.1.54, aby jednoznacznie ocenić różnicę inicjalizacji. To wersja diagnostyczna tylko na zasilaniu programatora.
 - Konwerter Z2M pozostaje taki jak dla v0.1.54 (obsługuje F10B–F110). Do sprawdzenia: Pir High Samples, Pir Rising Edges, Occupancy, Pir Pd In/IE/OEN/GPIO, Lux ADC.
 - Zastosowanie identycznej inicjalizacji nie gwarantuje wykrycia ruchu; raporty sprzętowe rozstrzygają wynik.
+
+
+## v0.1.56 — wykryta przyczyna stałego PIR LOW
+
+- Potwierdzony błąd logiczny w `src/app_pir_prucho2.c`: `drv_gpio_read(GPIO_PD4)` zwraca maskę bitową GPIO (`0x10` = 16 gdy HIGH). W SDK Telink/Slacky `bool` jest makrem na `u8` (`tl_zigbee_sdk/proj/common/types.h`), a `BM_IS_SET(x,mask)` jest wyrażeniem `(x & mask)` (`tl_zigbee_sdk/proj/common/bit.h`). Odczyt 16 przechodzi więc przez `drv_gpio_read()` bez normalizacji i stary warunek `drv_gpio_read(GPIO_PD4) == 1` jest fałszywy również przy HIGH.
+- Na screenie v0.1.55 `pir_pd_in=144` = `0x90` zawiera bit 4 (`0x10`) HIGH, podczas gdy `pir_gpio=0`, co jest zgodne z błędem porównania.
+- W v0.1.56 zmieniono odczyt na porównanie znormalizowanych poziomów: `(drv_gpio_read(PRUCHO2_PIR_GPIO) != 0) == (PRUCHO2_PIR_ACTIVE_LEVEL != 0)`.
+- Pozostałe części v0.1.55 bez zmian: kompletna inicjalizacja GPIO PVVX, 24 MHz, brak snu (wersja testowa), rejestry diagnostyczne, światło i konwerter Z2M v0.1.54.
+- Po wgraniu sprawdzić wzrost `pir_high_samples`, `pir_rising_edges`, przełączanie `occupancy` i timer wyłączenia. To najpierw test, dopiero po potwierdzeniu przywrócić oszczędzanie energii.
