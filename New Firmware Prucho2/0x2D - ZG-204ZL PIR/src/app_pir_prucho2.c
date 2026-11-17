@@ -11,6 +11,9 @@ static uint32_t pir_confirm_tick = 0;
 #define PIR_CONFIRM_SAMPLES 3
 #define PIR_CONFIRM_MS 5UL
 static ev_timer_event_t *occupancyTimer = NULL;
+/* Up to two extra false reports at 1 s intervals, only while PIR remains idle. */
+static ev_timer_event_t *occupancyFalseRepeatTimer = NULL;
+static uint8_t occupancyFalseRepeatCount = 0;
 
 static bool read_pir(void) {
     /* Telink gpio_read() returns mask (PD4=0x10), not a normalized bool. */
@@ -37,11 +40,28 @@ static void report_occupancy(void) {
     if (st == ZCL_STA_SUCCESS) occupancy_pending = false;
 }
 
+/* Extra false reports are intentionally separate from normal occupancy transitions.
+ * Any new motion cancels them; never publish a stale false after a new true. */
+static int32_t occupancyFalseRepeatCb(void *arg) {
+    if (read_pir() || prucho2_occupancy != 0) {
+        occupancyFalseRepeatTimer = NULL;
+        return -1;
+    }
+    occupancy_pending = true;
+    report_occupancy();
+    if (++occupancyFalseRepeatCount < 2) return 0;
+    occupancyFalseRepeatTimer = NULL;
+    return -1;
+}
+
 /* Retain occupied while physical PIR stays HIGH, release after the hold
  * timer (3 s by default) sees LOW. */
 static int32_t occupancyTimerCb(void *arg) {
     if (read_pir()) return 0;
     request_occupancy(0);
+    occupancyFalseRepeatCount = 0;
+    if (occupancyFalseRepeatTimer) TL_ZB_TIMER_CANCEL(&occupancyFalseRepeatTimer);
+    occupancyFalseRepeatTimer = TL_ZB_TIMER_SCHEDULE(occupancyFalseRepeatCb, NULL, 1000UL);
     occupancyTimer = NULL;
     return -1;
 }
@@ -74,6 +94,7 @@ void prucho2_pir_task(void) {
         if (++pir_confirm_count >= PIR_CONFIRM_SAMPLES) pir_confirm_active = false;
     }
     if (active && !prucho2_occupancy) {
+        if (occupancyFalseRepeatTimer) TL_ZB_TIMER_CANCEL(&occupancyFalseRepeatTimer);
         request_occupancy(1);
         if (occupancyTimer) TL_ZB_TIMER_CANCEL(&occupancyTimer);
         uint32_t hold = prucho2_occupancy_hold;
