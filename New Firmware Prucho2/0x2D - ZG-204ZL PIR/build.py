@@ -38,6 +38,7 @@ FILES = (
     "app_endpoint_cfg.c",
     "common/board_zg204zl_pir_prucho2.h",
     "include/version_cfg.h",
+    "include/app_cfg.h",
     "include/app_pir_prucho2.h",
 )
 
