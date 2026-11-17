@@ -50,7 +50,7 @@
 
 #if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
 #define APP_RELEASE                         0x01
-#define APP_BUILD                           0x52  /* v0.1.52: PVVX 24MHz, voltage detect off, ADC explicit */
+#define APP_BUILD                           0x53  /* v0.1.53: ADC wake restore, isolate 24MHz PIR test */
 #elif (BOARD == BOARD_SONOFF_SNZB02_CHT8305)
 #define APP_RELEASE                         0x70        // custom Sonoff: v7.0
 #define APP_BUILD                           0x02        // custom Sonoff: v7.0.02
