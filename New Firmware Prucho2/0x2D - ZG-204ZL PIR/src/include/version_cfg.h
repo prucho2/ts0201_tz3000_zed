@@ -50,7 +50,7 @@
 
 #if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
 #define APP_RELEASE                         0x01
-#define APP_BUILD                           0x48  /* v0.1.48: independent light ADC and ZCL diagnostic snapshot */
+#define APP_BUILD                           0x49  /* v0.1.49: TS0207 PIR wake; lux 2s/20lx/30s */
 #elif (BOARD == BOARD_SONOFF_SNZB02_CHT8305)
 #define APP_RELEASE                         0x70        // custom Sonoff: v7.0
 #define APP_BUILD                           0x02        // custom Sonoff: v7.0.02
