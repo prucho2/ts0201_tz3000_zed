@@ -1,0 +1,45 @@
+name: Package OTA migration from PVVX ZG-204ZL
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev/prucho2-pir-pvvx-v141-baseline
+    paths:
+      - 'New Firmware Prucho2/0x2D - ZG-204ZL PIR/package_pvvx_migration.py'
+      - '.github/workflows/package-pir-pvvx-migration.yml'
+
+concurrency:
+  group: pir-pvvx-migration-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Repackage verified existing 0.1.58 BIN without firmware rebuild
+        run: |
+          python3 "New Firmware Prucho2/0x2D - ZG-204ZL PIR/package_pvvx_migration.py"
+      - name: Commit PVVX migration OTA in separate folder
+        shell: bash
+        run: |
+          set -euo pipefail
+          TARGET="New Firmware Prucho2/0x2D - ZG-204ZL PIR/ota-from-pvvx"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f -- "$TARGET"/*.zigbee
+          if ! git diff --cached --quiet; then
+            git commit -m "package(PIR): PVVX ZG-204ZL migration OTA v0.1.58 [skip ci]"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+      - name: Downloadable PVVX migration OTA
+        uses: actions/upload-artifact@v4
+        with:
+          name: PIR-ZG204ZL-from-PVVX-v0.1.58
+          path: New Firmware Prucho2/0x2D - ZG-204ZL PIR/ota-from-pvvx/*.zigbee
+          if-no-files-found: error
