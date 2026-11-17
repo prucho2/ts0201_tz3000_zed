@@ -92,3 +92,11 @@ Interpretacja: jeśli `lux_timer_ticks` przyrasta, lecz `lux_samples` nie — pr
 - Jedyna zmiana funkcjonalna względem v0.1.50: definicje startupowe GPIO PC5 ustawione zgodnie z oryginalnym board header PVVX dla ZG-204ZL (`PC5_FUNC=AS_GPIO`, `PC5_INPUT_ENABLE=OFF`, `PC5_OUTPUT_ENABLE=ON`, `PC5_DATA_OUT=1`).
 - Nie zmieniono kodu PIR PD4, zarządzania energią, pomiaru światła i okresowych snapshotów diagnostycznych. Sterownik ADC może ponownie konfigurować PC5 w czasie pracy; test nie dowodzi ciągłego zasilania PIR przez PC5 ani stałego utrzymywania stanu PC5 po pomiarach ADC.
 - Bezpieczny eksperyment tylko na egzemplarzu testowym z możliwością przywrócenia v0.1.50.
+
+
+## Test v0.1.52 — porównanie ustawień platformy z PVVX 0.1.40
+
+- Oddzielny tylko dla PIR `src/include/app_cfg.h` (nie zmienia wspólnego `src/`) ustawia taktowanie 24 MHz zamiast 48 MHz oraz `VOLTAGE_DETECT_ENABLE=OFF` zamiast ON; zgodnie ze źródłami PVVX 0.1.40.
+- Ponieważ wyłączono platformową kontrolę napięcia, `src/app_main.c` jawnie inicjalizuje ADC przed pierwszym odczytem baterii (`drv_adc_init`, `drv_adc_mode_pin_set` VBAT PC5, `drv_adc_enable`) i nadal pozwala na pomiary światła PC4.
+- Ustawienie PC5 HIGH z v0.1.51 pozostaje; odczyt PD4, mechanizm PM, światło 2s/20lx/30s i diagnostyka PIR 10s / lux 15s niezmienione.
+- Obie zmiany platformowe są w jednym eksperymencie na wyraźne żądanie; ewentualny pozytywny wynik nie rozstrzygnie, która zmiana pomogła. Monitorować `pir_high_samples`, `pir_rising_edges`, `occupancy`, `lux_adc_vbat`, `lux_adc_pc4`, `illuminance`.
