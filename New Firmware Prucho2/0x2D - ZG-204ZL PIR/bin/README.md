@@ -1,12 +1,1 @@
-# Wynikowe pliki firmware
-
-Po uruchomieniu `build.py` lokalnie tutaj powstaną:
-- `prucho2_zg204zl_pir_V0.1.47.bin`
-- `prucho2_zg204zl_pir_last_version.bin` (identyczna kopia)
-- `6565-022d-01473001-prucho2_zg204zl_pir.zigbee` (OTA)
-
-Po udanej kompilacji GitHub Actions zapisuje również pliki **bezpośrednio w tym folderze `bin/` na gałęzi testowej**, oprócz kopii w **Artifacts → PIR-0x2D-test-build**.
-
-**Nie publikuj testowych obrazów jako sprawdzonych.** Aktualnie 0.1.47 nie działa prawidłowo w części PIR i światła.
-
-Wyniki kompilacji przez GitHub Actions są automatycznie commitowane do `bin/` na gałęzi testowej. Jest to **archiwum eksperymentalnych obrazów**, a nie potwierdzenie poprawnej pracy urządzenia. Oprócz tego paczka w Artifacts jest dostępna przez 30 dni.
+# Gotowe pliki Prucho2 ZG-204ZL PIR\n\n**Najnowsza kompilacja: v0.1.59.**\n\n- Standardowe OTA Prucho2 → Prucho2: `6565-022d-01593001-prucho2_zg204zl_pir.zigbee`\n- BIN do programatora: `prucho2_zg204zl_pir_V0.1.59.bin`\n- Ostatni BIN: `prucho2_zg204zl_pir_last_version.bin`\n\nObrazy powstają w GitHub Actions z lokalnych źródeł w `src/`. Build sprawdza tożsamość wersji, kod producenta `0x6565`, typ obrazu `0x022D` i Telink CRC.\n\n**v0.1.59:** po zakończeniu okresu occupancy przesyła do trzech raportów `false`: od razu, po 1 s i 2 s. Powtórzenia tylko przy braku ruchu; nowy ruch normalnie emituje `true` i anuluje przyszłe powtórzenia.\n\nAktualizację v0.1.59 przez OTA należy jeszcze sprawdzić na fizycznym urządzeniu. Zachowano starsze obrazy w folderze jako historię.\n
