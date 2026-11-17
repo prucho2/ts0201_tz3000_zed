@@ -10,7 +10,7 @@
 #define PRUCHO2_LUX_MIN_DELTA_LX 20UL
 #define PRUCHO2_LUX_SYNC_MS 30000UL
 /* Independent diagnostic heartbeat; does NOT change actual lux reporting. */
-#define PRUCHO2_LUX_DIAG_MS 60000UL
+#define PRUCHO2_LUX_DIAG_MS 15000UL
 /* 0xF200..0xF209: all read-only counters/raw data. */
 uint32_t prucho2_lux_diag_timer_ticks = 0;
 uint32_t prucho2_lux_diag_samples = 0;
