@@ -15,6 +15,11 @@ static bool raw_high = false;
 static bool occupancy_pending = false;
 static bool diag_pending = true;
 static bool diag_sent_once = false;
+static bool pir_confirm_active = false;
+static uint8_t pir_confirm_count = 0;
+static uint32_t pir_confirm_tick = 0;
+#define PIR_CONFIRM_SAMPLES 3
+#define PIR_CONFIRM_MS 5UL
 static uint32_t diag_last_sent = 0;
 static ev_timer_event_t *occupancyTimer = NULL;
 
@@ -155,6 +160,13 @@ void prucho2_pir_task(void) {
         diag_pending = true;
         if (active) ++prucho2_diag_rising_edges;
         else ++prucho2_diag_falling_edges;
+        pir_confirm_active = true;
+        pir_confirm_count = 0;
+        pir_confirm_tick = clock_time();
+    }
+    if (pir_confirm_active && clock_time_exceed(pir_confirm_tick, PIR_CONFIRM_MS * 1000UL)) {
+        pir_confirm_tick = clock_time();
+        if (++pir_confirm_count >= PIR_CONFIRM_SAMPLES) pir_confirm_active = false;
     }
     if (active && !prucho2_occupancy) {
         request_occupancy(1);
@@ -166,18 +178,20 @@ void prucho2_pir_task(void) {
         occupancyTimer = TL_ZB_TIMER_SCHEDULE(occupancyTimerCb, NULL, hold * 1000UL);
     }
 
-    /* Exactly PVVX's PD4 active-high wake-on-opposite-level logic.
-     * This happens every event task pass rather than only at sleep entry. */
-    cpu_set_gpio_wakeup(PRUCHO2_PIR_GPIO, !active, 1);
+    /* PD4 wake level is set immediately before sleeping, TS0207 style. */
 
     report_occupancy();
     report_diagnostics();
 }
 
 void prucho2_pir_prepare_sleep(void) {
-    /* Preserve Slacky's PA1 button wake; do NOT overwrite the PVVX PD4 level. */
+    /* Configure PA1 and PD4 against their current electrical levels. */
     extern drv_pm_pinCfg_t g_switchPmCfg[];
-    drv_pm_wakeupPinLevelChange(g_switchPmCfg, 1);
+    drv_pm_wakeupPinLevelChange(g_switchPmCfg, 2);
+}
+
+bool prucho2_pir_idle(void) {
+    return pir_confirm_active;
 }
 
 void prucho2_pir_request_sync(void) {
