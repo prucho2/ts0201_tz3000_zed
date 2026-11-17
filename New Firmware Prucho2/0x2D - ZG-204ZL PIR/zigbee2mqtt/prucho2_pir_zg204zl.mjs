@@ -26,6 +26,7 @@ export default {
     zigbeeModel: ['Prucho2-PIR-z'],
     model: 'Prucho2-PIR-ZG204ZL',
     vendor: 'Prucho2 / Slacky-DIY',
+    ota: true,
     description: 'ZG-204ZL PIR with optional lux sensor; 20 s lux sampling, 20 lx change, 300 s sync',
     extend: [
         occupancy({reporting: true, reportingConfig: {min: 'MIN', max: '1_HOUR', change: 0}}),
