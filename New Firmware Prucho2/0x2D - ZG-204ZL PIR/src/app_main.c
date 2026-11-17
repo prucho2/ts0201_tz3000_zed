@@ -174,13 +174,6 @@ void user_app_init(void)
     ota_init(OTA_TYPE_CLIENT, (af_simple_descriptor_t *)&app_ep1Desc, &app_otaInfo, &app_otaCb);
 #endif
 
-    /* When matching PVVX voltage-detect=OFF, explicitly initialize ADC
-     * for normal battery and PC4 illuminance sampling on this board. */
-#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
-    drv_adc_init();
-    drv_adc_mode_pin_set(DRV_ADC_VBAT_MODE, VOLTAGE_DETECT_PIN);
-    drv_adc_enable(true);
-#endif
     batteryCb(NULL);
 
 #if DEBUG_BATTERY_EN
