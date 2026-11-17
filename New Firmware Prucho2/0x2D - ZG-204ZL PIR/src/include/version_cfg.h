@@ -50,8 +50,7 @@
 
 #if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
 #define APP_RELEASE                         0x01
-#define APP_BUILD                           0x58  /* v0.1.58: 20s lux, 300s sync, no diagnostics */
-/* Build requested after source-only staging; no functional change. */
+#define APP_BUILD                           0x59  /* v0.1.59: occupancy false retries at +1s and +2s */
 #elif (BOARD == BOARD_SONOFF_SNZB02_CHT8305)
 #define APP_RELEASE                         0x70        // custom Sonoff: v7.0
 #define APP_BUILD                           0x02        // custom Sonoff: v7.0.02
