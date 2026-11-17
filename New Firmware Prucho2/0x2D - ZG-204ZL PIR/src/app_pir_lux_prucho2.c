@@ -6,9 +6,9 @@
  * ADC hardware description is taken from the measured ZG-204ZL wiring;
  * ZCL and reporting are Slacky style, not copied from PVVX reporting.c.
  */
-#define PRUCHO2_LUX_PERIOD_MS 10000
-#define PRUCHO2_LUX_MIN_ZCL_DELTA 10
-#define PRUCHO2_LUX_SYNC_MS 3600000UL
+#define PRUCHO2_LUX_PERIOD_MS 2000
+#define PRUCHO2_LUX_MIN_DELTA_LX 20UL
+#define PRUCHO2_LUX_SYNC_MS 30000UL
 /* Independent diagnostic heartbeat; does NOT change actual lux reporting. */
 #define PRUCHO2_LUX_DIAG_MS 60000UL
 /* 0xF200..0xF209: all read-only counters/raw data. */
@@ -29,7 +29,9 @@ static bool lux_diag_sent_once = false;
 
 static bool sample_due = false;
 static bool need_report = false;
-static uint16_t last_reported_lux = 0;
+static uint32_t last_reported_lux = 0;
+static uint32_t current_lux = 0;
+static bool first_report = true;
 static uint32_t last_report_tick = 0;
 static ev_timer_event_t *luxTimer = NULL;
 
@@ -84,7 +86,7 @@ static uint16_t zcl_illuminance(uint32_t lux) {
     while (normalized >= 2) { normalized >>= 1; ++n; }
     uint32_t v = (lux << 15) >> n;
     for (uint8_t i = 0; i < 10; ++i) {
-        v = (v * v) >> 15;
+        v = (uint32_t)(((uint64_t)v * v) >> 15);
         if (v >= (2UL << 15)) {
             v >>= 1;
             fraction |= 1U << (9-i);
@@ -94,7 +96,7 @@ static uint16_t zcl_illuminance(uint32_t lux) {
     return z > 0xfffe ? 0xfffe : (uint16_t)z;
 }
 
-static uint16_t read_lux(void) {
+static uint32_t read_lux(void) {
     /* Read battery before changing ADC mode; restore ADC battery config
      * after measuring PC4 so Slacky's battery service remains operational.
      */
@@ -117,11 +119,10 @@ static uint16_t read_lux(void) {
     /* ZG-204ZL photodetector voltage ratio and fourth-power response.
      * Scale to ~1000 lux, pending physical calibration on TEST.
      */
-    uint32_t ratio = (sense * 65535UL) / vbat;
-    uint32_t ratio2 = (ratio * ratio) >> 16;
-    uint32_t ratio4 = (ratio2 * ratio2) >> 16;
-    uint32_t lux = (ratio4 * 1000UL) >> 16;
-    return zcl_illuminance(lux);
+    uint32_t ratio = (uint32_t)(((uint64_t)sense * 65535UL) / vbat);
+    uint32_t ratio2 = (uint32_t)(((uint64_t)ratio * ratio) >> 16);
+    uint32_t ratio4 = (uint32_t)(((uint64_t)ratio2 * ratio2) >> 16);
+    return (uint32_t)(((uint64_t)ratio4 * 1000UL) >> 16);
 }
 
 static int32_t lux_periodCb(void *arg) {
@@ -136,6 +137,8 @@ void prucho2_lux_init(void) {
     if (!luxTimer) luxTimer = TL_ZB_TIMER_SCHEDULE(lux_periodCb, NULL, PRUCHO2_LUX_PERIOD_MS);
     sample_due = true;
     last_report_tick = clock_time();
+    first_report = true;
+    need_report = true;
     lux_diag_pending = true;
     lux_diag_sent_once = false;
 }
@@ -143,14 +146,13 @@ void prucho2_lux_init(void) {
 void prucho2_lux_task(void) {
     if (sample_due) {
         sample_due = false;
-        uint16_t next = read_lux();
-        prucho2_lux_diag_zcl = next;
+        current_lux = read_lux();
+        prucho2_lux = zcl_illuminance(current_lux);
+        prucho2_lux_diag_zcl = prucho2_lux;
         lux_diag_pending = true;
-        if (next != prucho2_lux) {
-            prucho2_lux = next;
-            uint16_t change = next > last_reported_lux ? next-last_reported_lux : last_reported_lux-next;
-            if (change >= PRUCHO2_LUX_MIN_ZCL_DELTA) need_report = true;
-        }
+        uint32_t change = current_lux > last_reported_lux
+            ? current_lux - last_reported_lux : last_reported_lux - current_lux;
+        if (first_report || change >= PRUCHO2_LUX_MIN_DELTA_LX) need_report = true;
     }
     if (clock_time_exceed(last_report_tick, PRUCHO2_LUX_SYNC_MS * 1000UL)) need_report = true;
     if (need_report && zb_isDeviceJoinedNwk()) {
@@ -165,8 +167,9 @@ void prucho2_lux_task(void) {
         if (status == ZCL_STA_SUCCESS) {
             ++prucho2_lux_diag_reports_enqueued;
             need_report = false;
-            last_reported_lux = prucho2_lux;
+            last_reported_lux = current_lux;
             last_report_tick = clock_time();
+            first_report = false;
         } else {
             ++prucho2_lux_diag_reports_failed;
         }
