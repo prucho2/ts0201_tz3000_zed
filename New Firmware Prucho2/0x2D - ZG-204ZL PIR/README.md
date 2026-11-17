@@ -2,9 +2,9 @@
 
 **To jest samodzielny katalog źródeł do budowania PIR-a.** Nie musisz szukać zmian w głównych plikach `src/` repozytorium.
 
-**Stan aktualny: v0.1.58 skompilowany, testowo wgrany; migracja PVVX → Prucho2 OTA potwierdzona na czujniku TEST.** PIR, wybudzanie i powrót occupancy potwierdzone na wcześniejszej wersji v0.1.57. Nowa konfiguracja lux/bez diagnostyki v0.1.58 wymaga zwykłej obserwacji baterii i raportowania.
+**Stan aktualny: v0.1.59 skompilowany i opublikowany jako standardowe OTA; test na fizycznym czujniku oczekuje na wykonanie przez użytkownika.** v0.1.58 działa na schodach; migracja PVVX → Prucho2 OTA potwierdzona na czujniku TEST. PIR, wybudzanie i powrót occupancy potwierdzone na wcześniejszej wersji v0.1.57. Nowa konfiguracja lux/bez diagnostyki v0.1.58 wymaga zwykłej obserwacji baterii i raportowania.
 
-## Co gdzie jest?
+## Zmiana v0.1.59 — niezawodność raportów occupancy\n\n- Po zakończeniu aktualnego 3-sekundowego (regulowanego 1–600 s) cyklu occupancy i wykryciu LOW wysyłane jest pierwsze `false`.\n- O ile nadal brak ruchu, po +1 s wysyłane jest drugie `false`, a po +2 s trzecie `false`.\n- Nowe wykrycie ruchu natychmiast wraca do normalnego `true` i uruchamia nowy timer; niewysłane powtórzenia `false` są anulowane.\n- Bez zmian w lux, baterii, wybudzaniu, konwerterze Z2M i automatyzacji HA.\n- Dodatkowe raporty to osobne próby przesłania danych, a nie gwarancja dostarczenia do koordynatora. Do weryfikacji użyj Zigbee2MQTT DEBUG / MQTT Explorer.\n- OTA (z już działającego Prucho2): [`bin/6565-022d-01593001-prucho2_zg204zl_pir.zigbee`](./bin/6565-022d-01593001-prucho2_zg204zl_pir.zigbee). Nie mylić z przejściowym OTA PVVX.\n\n## Co gdzie jest?
 
 | Ścieżka w tym folderze | Do czego służy |
 |---|---|
