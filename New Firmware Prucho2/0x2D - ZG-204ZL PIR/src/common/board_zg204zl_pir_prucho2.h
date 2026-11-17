@@ -20,6 +20,12 @@
 #define SENSOR_USED SENSOR_SHT40
 
 #define VOLTAGE_DETECT_PIN GPIO_PC5
+/* Diagnostic v0.1.51: match PVVX ZG-204ZL PC5 startup GPIO state.
+ * This is NOT proof PC5 powers PIR; keep all other behavior unchanged. */
+#define PC5_FUNC AS_GPIO
+#define PC5_INPUT_ENABLE OFF
+#define PC5_OUTPUT_ENABLE ON
+#define PC5_DATA_OUT 1
 #define MAX_BUTTON_NUM 1
 #define BUTTON1 GPIO_PA1
 #define PA1_FUNC AS_GPIO
