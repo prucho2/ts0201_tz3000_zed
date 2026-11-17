@@ -2,7 +2,7 @@
 
 **To jest samodzielny katalog źródeł do budowania PIR-a.** Nie musisz szukać zmian w głównych plikach `src/` repozytorium.
 
-**Status v0.1.48: eksperymentalny, NIE działa jeszcze PIR (PD4 stale LOW) i światło może pokazywać N/A.** Poprawna kompilacja nie oznacza działającego urządzenia. To nie jest wersja produkcyjna.
+**Status v0.1.49: eksperymentalny, PIR (PD4) nadal wymaga testu na sprzęcie; światło było potwierdzone w v0.1.48.** Poprawna kompilacja nie oznacza działającego urządzenia. To nie jest wersja produkcyjna.
 
 ## Co gdzie jest?
 
@@ -49,7 +49,7 @@ Skrypt kopiuje projekt do katalogu tymczasowego, nakłada pliki z tego katalogu 
 - **Główny `src/` nie jest już źródłem zmian dla PIR w nowym workflow.** Stary workflow nadal istnieje dla starej gałęzi i należy go odróżniać od nowego.
 - Zmiana kodu w GitHubie lub udana kompilacja nie flashuje urządzenia i nie restartuje HA. HA MAIN bez zmian.
 
-## Diagnostyka światła — build testowy 0.1.48
+## Diagnostyka światła — build testowy 0.1.49
 
 W module `src/app_pir_lux_prucho2.c` dodano **10 atrybutów ZCL (0xF200–0xF209)**. Są wysyłane automatycznym raportem diagnostycznym około raz na 60 sekund po dołączeniu do sieci, niezależnie od zwykłego `illuminance`. Z2M wymaga konwertera z podkatalogu `zigbee2mqtt`. Nie zmieniono 10-sekundowego cyklu prób ani progu 10 jednostek ZCL / 1h synchronizacji w rzeczywistym raporcie światła.
 
@@ -69,3 +69,11 @@ W module `src/app_pir_lux_prucho2.c` dodano **10 atrybutów ZCL (0xF200–0xF209
 Interpretacja: jeśli `lux_timer_ticks` przyrasta, lecz `lux_samples` nie — problem w pętli aplikacji; jeśli oba przyrastają, lecz ADC PC4 lub VBAT jest zerowe — sprawdzić konfigurację ADC i pinów; jeśli ADC i `lux_zcl_value` są prawidłowe, a `lux_report_attempts` stoi — próg raportowania lub brak startowego raportu; jeśli stos przyjmuje raporty, a `illuminance` pozostaje `N/A` — potrzebna jest diagnostyka transmisji/konwertera. Uwaga: wartości surowe ADC nie są miliwoltami i nie należy ich interpretować jako luksów.
 
 **Niepotwierdzone na urządzeniu.** Zmiana dodaje telemetrię, nie jest deklaracją naprawienia światła ani PIR. Do ustawień PVVX na PC4 i źródła 1.41 wrócimy na podstawie tych wyników.
+
+
+## Test v0.1.49 (17 listopada 2026)
+
+- PIR: według Slacky TS0207 czujnika zalania aktualizacja polaryzacji wybudzania PAD obu pinów PA1 i PD4 tuż przed wejściem w sleep; przy zmianie PD4 krótkie podtrzymanie aktywnego CPU na 3 kontrole po 5 ms. Zdarzenie occupancy nie czeka na zakończenie tych kontroli. 11 istniejących pól diagnostycznych pozostaje bez zmian. To test, nie potwierdzona naprawa.
+- Lux: pomiar ADC co 2 sekundy; raport gdy zmiana o >=20 **rzeczywistych luksów** względem ostatnio zgłoszonego stanu; raport wymuszony po 30 sekundach od ostatniego zgłoszenia; każde zaakceptowane przez stos zgłoszenie resetuje 30-sekundowe odliczanie. Wysyłka 30-sekundowa dotyczy zwykłego illuminance, niezależna telemetria diagnostyczna pozostaje co 60 sekund.
+- Skorygowano arytmetykę stałoprzecinkową pomiaru lux i konwersji logarytmicznej do używania pośrednich mnożeń 64-bitowych, aby uniknąć 32-bitowego przepełnienia. To może zmienić wartości lux; porównać z rzeczywistymi warunkami.
+- Przed testem potwierdzić poprawną kompilację pliku bin i CRC32 w GitHub Actions; nie restartować HA MAIN.
