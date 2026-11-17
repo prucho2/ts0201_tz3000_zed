@@ -77,3 +77,11 @@ Interpretacja: jeśli `lux_timer_ticks` przyrasta, lecz `lux_samples` nie — pr
 - Lux: pomiar ADC co 2 sekundy; raport gdy zmiana o >=20 **rzeczywistych luksów** względem ostatnio zgłoszonego stanu; raport wymuszony po 30 sekundach od ostatniego zgłoszenia; każde zaakceptowane przez stos zgłoszenie resetuje 30-sekundowe odliczanie. Wysyłka 30-sekundowa dotyczy zwykłego illuminance, niezależna telemetria diagnostyczna pozostaje co 60 sekund.
 - Skorygowano arytmetykę stałoprzecinkową pomiaru lux do bezpiecznej 32-bitowej skali Q12, kompatybilnej z kompilatorem TC32 (nie wymaga 64-bitowych funkcji runtime). To może zmienić wartości lux; porównać z rzeczywistymi warunkami.
 - Przed testem potwierdzić poprawną kompilację pliku bin i CRC32 w GitHub Actions; nie restartować HA MAIN.
+
+
+## Test v0.1.50 — diagnostyka okresowa
+
+- W Z2M automatycznie pojawia się pełny 11-polowy snapshot diagnostyki PIR co 10 s, nawet jeśli PD4 nigdy nie zmienia poziomu. Liczniki nadal zwiększają się lokalnie na bieżąco; raport pokazuje stan na chwilę wysłania. `pir_sleep_returns` oznacza powroty z funkcji uśpienia, a nie jednoznacznie wybudzenia od PIR.
+- Pełny snapshot diagnostyczny światła jest wysyłany co 15 s. Normalne raporty `illuminance` pozostają niezależne: ADC co 2 s, próg 20 lx, synchronizacja co 30 s od ostatniego raportu.
+- Bez zmian w wykrywaniu PIR, mapowaniu GPIO, atrybutach/konwerterze Z2M i obsłudze energii względem v0.1.49.
+- Wersja tylko do diagnostyki, zwiększa ruch Zigbee i zużycie energii. Po rozwiązaniu problemu przywrócić oszczędne raportowanie.
