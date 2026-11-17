@@ -21,6 +21,12 @@ const diagAttributes = {
     pir_low_samples: 0xF108,
     pir_sleep_returns: 0xF109,
     pir_poll_samples: 0xF10A,
+    pir_pd_in: 0xF10B,
+    pir_pd_ie: 0xF10C,
+    pir_pd_oen: 0xF10D,
+    pir_pd_gpio: 0xF10E,
+    pir_pd_out: 0xF10F,
+    pir_pd_irq_en: 0xF110,
 };
 const luxDiagAttributes = {
     lux_timer_ticks: 0xF200,
@@ -106,9 +112,9 @@ export default {
     toZigbee: [occupancyTimeout, diagRead, luxDiagRead],
     exposes: [
         ...Object.keys(luxDiagAttributes).map((name) => e.numeric(name, ea.STATE_GET)
-            .withDescription('Light diagnostic attribute; snapshot every ~60s or after ADC samples')),
+            .withDescription('Light diagnostic attribute; snapshot every ~15s')),
         ...Object.keys(diagAttributes).map((name) => e.numeric(name, ea.STATE_GET)
-            .withDescription('PVVX PIR diagnostic counter, full event snapshot and on-demand get')),
+            .withDescription('PIR diagnostic and raw GPIO register; snapshot every ~10s or on-demand get')),
         e.numeric('occupancy_timeout', ea.ALL).withUnit('s')
             .withValueMin(1).withValueMax(600).withValueStep(1)
             .withDescription('Time from last PIR activity until unoccupied'),
