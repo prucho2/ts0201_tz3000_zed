@@ -6,6 +6,11 @@ uint32_t last_timer_duration = 0;
 
 void app_pm_lowPowerEnter(void) {
 #if PM_ENABLE
+#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
+    /* v0.1.54 diagnostic: do not sleep so that GPIO_PD4 is observed
+     * continuously. All other boards retain their normal power policy. */
+    return;
+#endif
     drv_pm_wakeup_src_e wakeupSrc = PM_WAKEUP_SRC_PAD;
     u32 sleepTime = 0;
     bool longSleep = 0;
