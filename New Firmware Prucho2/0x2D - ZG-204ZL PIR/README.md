@@ -100,3 +100,11 @@ Interpretacja: jeśli `lux_timer_ticks` przyrasta, lecz `lux_samples` nie — pr
 - Ponieważ wyłączono platformową kontrolę napięcia, `src/app_main.c` jawnie inicjalizuje ADC przed pierwszym odczytem baterii (`drv_adc_init`, `drv_adc_mode_pin_set` VBAT PC5, `drv_adc_enable`) i nadal pozwala na pomiary światła PC4.
 - Ustawienie PC5 HIGH z v0.1.51 pozostaje; odczyt PD4, mechanizm PM, światło 2s/20lx/30s i diagnostyka PIR 10s / lux 15s niezmienione.
 - Obie zmiany platformowe są w jednym eksperymencie na wyraźne żądanie; ewentualny pozytywny wynik nie rozstrzygnie, która zmiana pomogła. Monitorować `pir_high_samples`, `pir_rising_edges`, `occupancy`, `lux_adc_vbat`, `lux_adc_pc4`, `illuminance`.
+
+
+## Test v0.1.53 — naprawa regresji ADC 0.1.52
+
+- Wynik v0.1.52: `lux_timer_ticks` i `lux_samples` przyrastają, lecz oba ADC stale zero, `lux_status=7`; PIR nadal nigdy HIGH.
+- Przyczyną możliwą, znalezioną w kodzie: po `VOLTAGE_DETECT_ENABLE=OFF` inicjalizacja ADC została przeniesiona do `user_app_init()`, która działa tylko przy zimnym starcie; nie odtwarza ADC po deep sleep z retention.
+- v0.1.53 przywraca `VOLTAGE_DETECT_ENABLE=ON`, więc SDK inicjalizuje ADC na każdej ścieżce `drv_platform_init()`; usuwa jednorazową inicjalizację z `user_app_init()`. Zachowuje zegar 24 MHz, PC5 HIGH, PIR PD4 i raporty 10/15 s, światło ADC 2 s / zmiana 20 lx / 30 s.
+- Test rozdziela wpływ zegara od skutków wyłączenia ADC. Nie jest potwierdzoną poprawką wykrywania PIR.
