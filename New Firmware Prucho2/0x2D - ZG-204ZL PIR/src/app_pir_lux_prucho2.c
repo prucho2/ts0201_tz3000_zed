@@ -86,7 +86,7 @@ static uint16_t zcl_illuminance(uint32_t lux) {
     while (normalized >= 2) { normalized >>= 1; ++n; }
     uint32_t v = (lux << 15) >> n;
     for (uint8_t i = 0; i < 10; ++i) {
-        v = (uint32_t)(((uint64_t)v * v) >> 15);
+        v = (v * v) >> 15;
         if (v >= (2UL << 15)) {
             v >>= 1;
             fraction |= 1U << (9-i);
@@ -119,10 +119,12 @@ static uint32_t read_lux(void) {
     /* ZG-204ZL photodetector voltage ratio and fourth-power response.
      * Scale to ~1000 lux, pending physical calibration on TEST.
      */
-    uint32_t ratio = (uint32_t)(((uint64_t)sense * 65535UL) / vbat);
-    uint32_t ratio2 = (uint32_t)(((uint64_t)ratio * ratio) >> 16);
-    uint32_t ratio4 = (uint32_t)(((uint64_t)ratio2 * ratio2) >> 16);
-    return (uint32_t)(((uint64_t)ratio4 * 1000UL) >> 16);
+    /* 12-bit Q12 fixed point: every multiplication fits in uint32_t,
+     * including the 1000-lux scaling. TC32 linker has no 64-bit helpers. */
+    uint32_t ratio = (sense << 12) / vbat;
+    uint32_t ratio2 = (ratio * ratio) >> 12;
+    uint32_t ratio4 = (ratio2 * ratio2) >> 12;
+    return (ratio4 * 1000UL) >> 12;
 }
 
 static int32_t lux_periodCb(void *arg) {
