@@ -35,6 +35,52 @@ uint32_t prucho2_diag_gpio_high_samples = 0;
 uint32_t prucho2_diag_gpio_low_samples = 0;
 uint32_t prucho2_diag_sleep_returns = 0;
 uint32_t prucho2_diag_poll_samples = 0;
+/* Actual GPIO port D hardware registers; PD4 is BIT(4). */
+uint8_t prucho2_diag_pd_in = 0;
+uint8_t prucho2_diag_pd_ie = 0;
+uint8_t prucho2_diag_pd_oen = 0;
+uint8_t prucho2_diag_pd_gpio = 0;
+uint8_t prucho2_diag_pd_out = 0;
+uint8_t prucho2_diag_pd_irq_en = 0;
+static uint32_t pd_register_last_sent = 0;
+static bool pd_register_sent_once = false;
+
+static void snapshot_pd_registers(void) {
+    prucho2_diag_pd_in = reg_gpio_pd_in;
+    prucho2_diag_pd_ie = reg_gpio_pd_ie;
+    prucho2_diag_pd_oen = reg_gpio_pd_oen;
+    prucho2_diag_pd_gpio = reg_gpio_pd_gpio;
+    prucho2_diag_pd_out = reg_gpio_pd_out;
+    prucho2_diag_pd_irq_en = reg_gpio_pd_irq_en;
+}
+
+static void report_pd_registers(void) {
+    if (!zb_isDeviceJoinedNwk()) return;
+    if (pd_register_sent_once && !clock_time_exceed(pd_register_last_sent, 10000UL * 1000UL)) return;
+    const u16 ids[6] = {0xF10B, 0xF10C, 0xF10D, 0xF10E, 0xF10F, 0xF110};
+    struct { u8 numAttr; zclReport_t attr[6]; } report;
+    report.numAttr = 0;
+    for (u8 i = 0; i < 6; ++i) {
+        zclAttrInfo_t *a = zcl_findAttribute(APP_ENDPOINT1, ZCL_CLUSTER_MS_OCCUPANCY_SENSING, ids[i]);
+        if (!a || !a->data) return;
+        report.attr[i].attrID = a->id;
+        report.attr[i].dataType = a->type;
+        report.attr[i].attrData = a->data;
+        ++report.numAttr;
+    }
+    epInfo_t dst;
+    TL_SETSTRUCTCONTENT(dst, 0);
+    dst.profileId = HA_PROFILE_ID;
+    dst.dstAddrMode = APS_DSTADDR_EP_NOTPRESETNT;
+    status_t st = zcl_sendReportAttrsCmd(APP_ENDPOINT1, &dst, TRUE,
+        ZCL_FRAME_SERVER_CLIENT_DIR, ZCL_CLUSTER_MS_OCCUPANCY_SENSING,
+        (zclReportCmd_t *)&report);
+    if (st == ZCL_STA_SUCCESS) {
+        pd_register_sent_once = true;
+        pd_register_last_sent = clock_time();
+    }
+}
+
 
 void prucho2_pir_note_wakeup(void) {
     ++prucho2_diag_sleep_returns;
@@ -133,6 +179,7 @@ void prucho2_pir_init(void) {
     drv_gpio_func_set(PRUCHO2_PIR_GPIO);
     drv_gpio_output_en(PRUCHO2_PIR_GPIO, false);
     drv_gpio_input_en(PRUCHO2_PIR_GPIO, true);
+    snapshot_pd_registers();
     raw_high = read_pir();
     prucho2_diag_raw_gpio = raw_high ? 1 : 0;
     prucho2_occupancy = raw_high ? 1 : 0;
@@ -148,6 +195,7 @@ void prucho2_pir_init(void) {
 }
 
 void prucho2_pir_task(void) {
+    snapshot_pd_registers();
     bool active = read_pir();
     prucho2_diag_raw_gpio = active ? 1 : 0;
     ++prucho2_diag_poll_samples;
@@ -181,6 +229,7 @@ void prucho2_pir_task(void) {
 
     report_occupancy();
     report_diagnostics();
+    report_pd_registers();
 }
 
 void prucho2_pir_prepare_sleep(void) {
