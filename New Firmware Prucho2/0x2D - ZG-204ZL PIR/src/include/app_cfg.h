@@ -153,9 +153,9 @@
  * such as VCC.
  */
 #if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
-    /* PVVX 0.1.40 disables platform voltage-detect / brownout polling.
-     * ADC is initialized explicitly in app_main.c for light+battery. */
-    #define VOLTAGE_DETECT_ENABLE                   OFF
+    /* Restore ADC initialization on every wake, including RAM retention.
+     * 24 MHz PVVX clock remains under test on this board. */
+    #define VOLTAGE_DETECT_ENABLE                   ON
 #else
     #define VOLTAGE_DETECT_ENABLE                   ON
 #endif
