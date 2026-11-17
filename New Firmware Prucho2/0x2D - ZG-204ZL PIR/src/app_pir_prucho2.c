@@ -88,7 +88,10 @@ void prucho2_pir_note_wakeup(void) {
 
 static bool read_pir(void) {
     /* On TLSR8253, Slacky's wrapper is Telink gpio_read(). */
-    return drv_gpio_read(PRUCHO2_PIR_GPIO) == PRUCHO2_PIR_ACTIVE_LEVEL;
+    /* Telink gpio_read returns pin MASK (PD4=0x10), not boolean 1.
+     * This SDK defines bool as u8, so drv_gpio_read preserves 0x10.
+     * Normalize before comparing active-high level. */
+    return (drv_gpio_read(PRUCHO2_PIR_GPIO) != 0) == (PRUCHO2_PIR_ACTIVE_LEVEL != 0);
 }
 
 static void request_occupancy(uint8_t value) {
