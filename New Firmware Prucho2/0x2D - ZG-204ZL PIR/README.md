@@ -108,3 +108,14 @@ Interpretacja: jeśli `lux_timer_ticks` przyrasta, lecz `lux_samples` nie — pr
 - Przyczyną możliwą, znalezioną w kodzie: po `VOLTAGE_DETECT_ENABLE=OFF` inicjalizacja ADC została przeniesiona do `user_app_init()`, która działa tylko przy zimnym starcie; nie odtwarza ADC po deep sleep z retention.
 - v0.1.53 przywraca `VOLTAGE_DETECT_ENABLE=ON`, więc SDK inicjalizuje ADC na każdej ścieżce `drv_platform_init()`; usuwa jednorazową inicjalizację z `user_app_init()`. Zachowuje zegar 24 MHz, PC5 HIGH, PIR PD4 i raporty 10/15 s, światło ADC 2 s / zmiana 20 lx / 30 s.
 - Test rozdziela wpływ zegara od skutków wyłączenia ADC. Nie jest potwierdzoną poprawką wykrywania PIR.
+
+
+## Analiza po v0.1.53 — PD4 nadal LOW (2026-11-17)
+
+Wyniki v0.1.53: lux_adc_vbat=3318, lux_adc_pc4=1536, illuminance=43 lx; pir_poll_samples=1806, pir_low_samples=1806, pir_high_samples=0, pir_rising_edges=0, pir_sleep_returns=14. Światło działa, ruch nie. To nie jest wyłącznie błąd konwertera Z2M: odczyty GPIO w firmware pozostają LOW.
+
+PVVX prucho2/ZigbeeTLc-PIR src/sensor_pir.c: gpio_read(GPIO_PIR) = GPIO_PD4, active HIGH. Nasz drv_gpio_read(GPIO_PD4) bezpośrednio wywołuje to samo gpio_read(). Definicje input on, output off oraz brak pull-up/down PD4 są zgodne. Obsługa przycisku app_button.c/drv_keyboard.c dotyczy PA1, a nie PD4. PC5 HIGH ustawiane jest także przez adc_vbat_pin_init() — już przed zmianą v0.1.51.
+
+**Nierozstrzygnięta różnica GPIO:** PVVX używa niestandardowego _gpio_init(TRUE) z src/patch_z_sdk/hw_drv.c, a nie oryginalnego gpio_init(TRUE) SDK Slacky. PVVX bezpośrednio wpisuje reg_gpio_pd_setting1 oraz reg_gpio_pd_setting2 w drv_platform_init (również po retention wake). Nadal nie sprawdziliśmy rzeczywistej konfiguracji portu PD4 po uruchomieniu i po wybudzeniach (reg_gpio_pd_ie, reg_gpio_pd_oen, reg_gpio_pd_gpio, reg_gpio_pd_in). Zgodne makra nie dowodzą zgodnej rzeczywistej konfiguracji.
+
+**Następny uzasadniony test — jeszcze nie wykonany:** jedna wersja diagnostyczna, bez deep sleep, z ciągłym odczytem PD4 i snapshotem bezpośrednich rejestrów GPIO oraz pozostawionymi ADC i raportami światła. Pozwoli rozróżnić złą konfigurację pinu, stały poziom LOW mimo poprawnej konfiguracji oraz wpływ snu. Alternatywny test powrotu do PVVX 0.1.40 na tej samej płytce może ponownie potwierdzić zachowanie elektroniki bez miernika.
