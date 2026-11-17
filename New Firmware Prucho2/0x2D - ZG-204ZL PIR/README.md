@@ -134,3 +134,13 @@ PVVX prucho2/ZigbeeTLc-PIR src/sensor_pir.c: gpio_read(GPIO_PIR) = GPIO_PD4, act
 - PD4 ma maskę bitową 16: PD IE bit4 = 1, PD OEN bit4 = 1 (wyjście wyłączone; active low), PD GPIO bit4 = 1. PD IN bit4 odzwierciedla stan wejścia.
 - Nowy konwerter z tego folderu trzeba skopiować do instalacji Z2M i przeładować konwerter (może wymagać restartu samego Z2M); nie restartować HA MAIN bez zgody.
 - pir_sleep_returns ma pozostać 0; to diagnostyka sprzętowych rejestrów, nie poprawka produkcyjna.
+
+
+## Test v0.1.55 — pełna inicjalizacja GPIO z PVVX 0.1.40
+
+- Projekt-lokalna kopia sterownika `src/patch/drv_hw.c` zastępuje `tl_zigbee_sdk/proj/drivers/drv_hw.c` wyłącznie w tymczasowym drzewie kompilacji projektu. Wspólny kod Slacky ani inne płytki nie są zmieniane.
+- W `drv_platform_init` dla BOARD 0x2D wywołujemy pełną funkcję `prucho2_pvvx_gpio_init(TRUE)` skopiowaną z `_gpio_init` PVVX (`src/patch_z_sdk/hw_drv.c`): rejestry PA, PB, PC, PD, PE oraz analogowe pull-up/down 0x0E–0x15. Dla innych płytek pozostaje oryginalne `gpio_init(TRUE)` Slacky.
+- Ujednolicono też startowe ustawienia PC4: GPIO input enabled i output disabled, jak w PVVX. Zachowano stan PC5 HIGH, PD3, PD4, PD7 i PA1, wprowadzony wcześniej zegar 24 MHz oraz działające ADC/światło.
+- Celowo pozostawiono **bez snu** i diagnostykę rejestrów PD4 z v0.1.54, aby jednoznacznie ocenić różnicę inicjalizacji. To wersja diagnostyczna tylko na zasilaniu programatora.
+- Konwerter Z2M pozostaje taki jak dla v0.1.54 (obsługuje F10B–F110). Do sprawdzenia: Pir High Samples, Pir Rising Edges, Occupancy, Pir Pd In/IE/OEN/GPIO, Lux ADC.
+- Zastosowanie identycznej inicjalizacji nie gwarantuje wykrycia ruchu; raporty sprzętowe rozstrzygają wynik.
