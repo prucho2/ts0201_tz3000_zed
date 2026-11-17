@@ -366,6 +366,13 @@ const zclAttrInfo_t prucho2_occup_attrTbl[] = {
     { 0xF108, ZCL_UINT32, R, (uint8_t *)&prucho2_diag_gpio_low_samples },
     { 0xF109, ZCL_UINT32, R, (uint8_t *)&prucho2_diag_sleep_returns },
     { 0xF10A, ZCL_UINT32, R, (uint8_t *)&prucho2_diag_poll_samples },
+    /* Raw GPIO port D snapshots, useful to verify PD4 BIT(4) after boot. */
+    { 0xF10B, ZCL_UINT8, R, (uint8_t *)&prucho2_diag_pd_in },
+    { 0xF10C, ZCL_UINT8, R, (uint8_t *)&prucho2_diag_pd_ie },
+    { 0xF10D, ZCL_UINT8, R, (uint8_t *)&prucho2_diag_pd_oen },
+    { 0xF10E, ZCL_UINT8, R, (uint8_t *)&prucho2_diag_pd_gpio },
+    { 0xF10F, ZCL_UINT8, R, (uint8_t *)&prucho2_diag_pd_out },
+    { 0xF110, ZCL_UINT8, R, (uint8_t *)&prucho2_diag_pd_irq_en },
     { ZCL_ATTRID_GLOBAL_CLUSTER_REVISION,   ZCL_UINT16,  R,  (uint8_t *)&zcl_attr_global_clusterRevision },
 };
 #define PRUCHO2_OCC_ATTR_NUM (sizeof(prucho2_occup_attrTbl) / sizeof(zclAttrInfo_t))
