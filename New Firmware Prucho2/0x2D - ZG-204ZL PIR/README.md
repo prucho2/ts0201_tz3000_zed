@@ -85,3 +85,10 @@ Interpretacja: jeśli `lux_timer_ticks` przyrasta, lecz `lux_samples` nie — pr
 - Pełny snapshot diagnostyczny światła jest wysyłany co 15 s. Normalne raporty `illuminance` pozostają niezależne: ADC co 2 s, próg 20 lx, synchronizacja co 30 s od ostatniego raportu.
 - Bez zmian w wykrywaniu PIR, mapowaniu GPIO, atrybutach/konwerterze Z2M i obsłudze energii względem v0.1.49.
 - Wersja tylko do diagnostyki, zwiększa ruch Zigbee i zużycie energii. Po rozwiązaniu problemu przywrócić oszczędne raportowanie.
+
+
+## Test v0.1.51 — tylko PC5
+
+- Jedyna zmiana funkcjonalna względem v0.1.50: definicje startupowe GPIO PC5 ustawione zgodnie z oryginalnym board header PVVX dla ZG-204ZL (`PC5_FUNC=AS_GPIO`, `PC5_INPUT_ENABLE=OFF`, `PC5_OUTPUT_ENABLE=ON`, `PC5_DATA_OUT=1`).
+- Nie zmieniono kodu PIR PD4, zarządzania energią, pomiaru światła i okresowych snapshotów diagnostycznych. Sterownik ADC może ponownie konfigurować PC5 w czasie pracy; test nie dowodzi ciągłego zasilania PIR przez PC5 ani stałego utrzymywania stanu PC5 po pomiarach ADC.
+- Bezpieczny eksperyment tylko na egzemplarzu testowym z możliwością przywrócenia v0.1.50.
