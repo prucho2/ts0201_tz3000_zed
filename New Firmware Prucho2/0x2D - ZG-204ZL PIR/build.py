@@ -40,6 +40,7 @@ FILES = (
     "include/version_cfg.h",
     "include/app_cfg.h",
     "include/app_pir_prucho2.h",
+    "patch/drv_hw.c",
 )
 
 def main():
@@ -51,7 +52,7 @@ def main():
         ))
         for filename in FILES:
             source = SOURCE / filename
-            dest = work / "src" / filename
+            dest = (work / "tl_zigbee_sdk/proj/drivers/drv_hw.c") if filename == "patch/drv_hw.c" else (work / "src" / filename)
             assert source.is_file(), f"Missing project source: {source}"
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, dest)
