@@ -109,12 +109,8 @@
     #define FLASH_CAP_SIZE_1M           1
 #endif
 //    #define BOARD                       BOARD_TS201_TZ3000
-    #if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
-        /* Match proven-working PVVX ZG-204ZL 0.1.40 clock. */
-        #define CLOCK_SYS_CLOCK_HZ      24000000
-    #else
-        #define CLOCK_SYS_CLOCK_HZ      48000000
-    #endif
+    /* Original Slacky-DIY 8258 platform clock, including PIR 0x2D. */
+    #define CLOCK_SYS_CLOCK_HZ          48000000
     #define NV_ITEM_APP_USER_CFG        (NV_ITEM_APP_GP_TRANS_TABLE + 1)    // see sdk/proj/drivers/drv_nv.h
 #elif defined(MCU_CORE_8278)
     #define FLASH_CAP_SIZE_1M           1
@@ -152,13 +148,7 @@
  * we need to configure the detection IO port, and the IO must be connected to the target under test,
  * such as VCC.
  */
-#if (BOARD == BOARD_PRUCHO2_PIR_ZG204ZL)
-    /* Restore ADC initialization on every wake, including RAM retention.
-     * 24 MHz PVVX clock remains under test on this board. */
-    #define VOLTAGE_DETECT_ENABLE                   ON
-#else
-    #define VOLTAGE_DETECT_ENABLE                   ON
-#endif
+#define VOLTAGE_DETECT_ENABLE                       ON
 #define VOLTAGE_DETECT_ADC_PIN                      VOLTAGE_DETECT_PIN
 
 /* Watch dog module */
