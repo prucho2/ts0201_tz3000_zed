@@ -1,6 +1,8 @@
 /*
  * Prucho2 PIR ZG-204ZL - Slacky-DIY-based Zigbee2MQTT external converter.
  * Stable occupancy, illuminance and battery only; diagnostics removed.
+ * Z2M frontend icon (set per-device in Z2M settings, NOT a converter property):
+ * https://www.zigbee2mqtt.io/images/devices/ZG-204ZL-z.png
  */
 import {occupancy, illuminance, battery} from 'zigbee-herdsman-converters/lib/modernExtend';
 import {presets as e, access as ea} from 'zigbee-herdsman-converters/lib/exposes';
